@@ -1,0 +1,1735 @@
+<!DOCTYPE html>
+<html lang="es-MX">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Control de Roll de Turnos</title>
+<meta name="description" content="Control de roll de turnos para personal sindicalizado y empleados" />
+<meta name="theme-color" content="#0f2440" />
+<link rel="manifest" href="manifest.json" />
+<link rel="icon" href="icons/icon-192.png" />
+<link rel="apple-touch-icon" href="icons/icon-192.png" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="RollTurnos" />
+
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
+
+<style>
+  :root{
+    --azul-900:#0f2440;
+    --azul-800:#163258;
+    --azul-700:#1e4273;
+    --azul-600:#2a5a9a;
+    --naranja:#f2954a;
+    --naranja-dark:#d97a2e;
+    --gris-100:#f5f7fa;
+    --gris-200:#e9edf3;
+    --gris-300:#dde3eb;
+    --gris-500:#8a96a8;
+    --gris-700:#4a5567;
+    --rojo:#d64545;
+    --verde:#2f9e58;
+    --radius:10px;
+    --shadow: 0 2px 10px rgba(15,36,64,.08);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;height:100%;}
+  body{
+    font-family: "Segoe UI", Roboto, system-ui, -apple-system, Arial, sans-serif;
+    background: var(--gris-100);
+    color:#1b2432;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .banner-warn{
+    display:none; background:#fff4e5; border-bottom:1px solid #f3d9ad; color:#7a4e0f;
+    font-size:12.5px; padding:9px 16px; text-align:center;
+  }
+  .banner-warn.show{display:block;}
+  /* ---------- Topbar ---------- */
+  .topbar{
+    position:sticky; top:0; z-index:40;
+    background: linear-gradient(135deg, var(--azul-900), var(--azul-700));
+    color:#fff;
+    padding:12px 16px;
+    display:flex; align-items:center; gap:12px;
+    box-shadow: var(--shadow);
+  }
+  .topbar img.logo{width:36px;height:36px;border-radius:8px;flex-shrink:0;}
+  .topbar .titles{flex:1; min-width:0;}
+  .topbar h1{font-size:16px;margin:0; font-weight:600; letter-spacing:.2px;}
+  .topbar .sub{font-size:11.5px; opacity:.85; margin-top:1px;}
+  .btn-install{
+    background: var(--naranja); color:#20150a; border:none;
+    padding:8px 12px; border-radius:8px; font-weight:600; font-size:12.5px;
+    cursor:pointer; white-space:nowrap; display:none;
+  }
+  .btn-install.show{display:inline-flex; align-items:center; gap:6px;}
+
+  /* ---------- Toolbar ---------- */
+  .toolbar{
+    background:#fff; border-bottom:1px solid var(--gris-300);
+    padding:10px 14px; display:flex; flex-wrap:wrap; gap:10px; align-items:flex-end;
+    position:sticky; top:60px; z-index:35;
+  }
+  .field{display:flex; flex-direction:column; gap:3px;}
+  .field label{font-size:10.5px; text-transform:uppercase; letter-spacing:.4px; color:var(--gris-700); font-weight:600;}
+  .field select, .field input[type=text], .field input[type=date]{
+    padding:7px 9px; border:1px solid var(--gris-300); border-radius:8px; font-size:13px;
+    background:#fff; min-width:120px; color:#1b2432;
+  }
+  .week-nav{display:flex; align-items:center; gap:6px;}
+  .week-nav button{
+    border:1px solid var(--gris-300); background:#fff; border-radius:8px; width:32px;height:32px;
+    cursor:pointer; font-size:15px; color:var(--azul-800); display:flex;align-items:center;justify-content:center;
+  }
+  .week-nav button:hover{background:var(--gris-200);}
+  .week-label{font-size:12.5px; font-weight:600; color:var(--azul-800); padding:0 4px; white-space:nowrap;}
+  .spacer{flex:1;}
+  .actions{display:flex; gap:8px; flex-wrap:wrap;}
+  .btn{
+    border:none; border-radius:8px; padding:8px 13px; font-size:12.5px; font-weight:600;
+    cursor:pointer; display:inline-flex; align-items:center; gap:6px; white-space:nowrap;
+  }
+  .btn-primary{background:var(--azul-700); color:#fff;}
+  .btn-primary:hover{background:var(--azul-800);}
+  .btn-orange{background:var(--naranja); color:#211609;}
+  .btn-orange:hover{background:var(--naranja-dark);}
+  .btn-outline{background:#fff; color:var(--azul-800); border:1px solid var(--gris-300);}
+  .btn-outline:hover{background:var(--gris-200);}
+  .btn-danger{background:#fff; color:var(--rojo); border:1px solid #f3c6c6;}
+  .btn-danger:hover{background:#fdeeee;}
+  .btn:disabled{opacity:.45; cursor:not-allowed;}
+
+  /* ---------- Content ---------- */
+  .content{padding:14px;}
+  .summary-row{display:flex; gap:10px; flex-wrap:wrap; margin-bottom:12px;}
+  .chip{
+    background:#fff; border:1px solid var(--gris-300); border-radius:20px; padding:6px 13px;
+    font-size:12px; color:var(--gris-700); display:flex; gap:6px; align-items:center;
+  }
+  .chip b{color:var(--azul-800); font-size:13px;}
+
+  .table-wrap{
+    background:#fff; border-radius:var(--radius); box-shadow:var(--shadow);
+    overflow:auto; max-width:100%;
+  }
+  table.roster{border-collapse:collapse; width:100%; min-width:900px; font-size:12.5px;}
+  table.roster thead th{
+    background: var(--azul-800); color:#fff; padding:8px 7px; font-size:11px;
+    text-transform:uppercase; letter-spacing:.3px; position:sticky; top:0; z-index:5;
+    text-align:center; white-space:nowrap;
+  }
+  table.roster thead th.day-head{min-width:58px;}
+  table.roster thead th .day-name{display:block;font-weight:700;}
+  table.roster thead th .day-date{display:block;font-weight:400; font-size:10px; opacity:.85; margin-top:1px;}
+  table.roster thead th.sticky-col{position:sticky; left:0; z-index:8; text-align:left;}
+  table.roster thead th.sticky-col.col2{z-index:7;}
+
+  table.roster tbody td{
+    border-bottom:1px solid var(--gris-200); padding:6px 7px; white-space:nowrap;
+  }
+  table.roster tbody tr:hover{background:#fbfcfe;}
+  table.roster tbody td.sticky-col{
+    position:sticky; background:#fff; z-index:3;
+  }
+  table.roster tbody tr:hover td.sticky-col{background:#fbfcfe;}
+  td.col-area{left:0; font-weight:600; color:var(--azul-800); max-width:120px; overflow:hidden; text-overflow:ellipsis;}
+  td.col-nombre{font-weight:600; max-width:200px; overflow:hidden; text-overflow:ellipsis;}
+  td.col-ficha{text-align:center; color:var(--gris-700);}
+  td.col-tipo{text-align:center;}
+  td.col-nota{max-width:160px; overflow:hidden; text-overflow:ellipsis; color:var(--gris-700); font-style:italic;}
+  .badge-tipo{
+    border-radius:14px; padding:3px 9px; font-size:10.5px; font-weight:700;
+  }
+  .badge-empleado{background:#e4eefb; color:#1d5aa3;}
+  .badge-sindicalizado{background:#fdece0; color:#b25a16;}
+
+  td.day-cell{text-align:center; padding:3px !important;}
+  .shift-pill{
+    display:inline-flex; align-items:center; justify-content:center;
+    min-width:30px; height:26px; border-radius:7px; font-weight:700; font-size:11.5px;
+    cursor:pointer; border:1px solid transparent; user-select:none;
+  }
+  .shift-pill:hover{filter:brightness(0.95);}
+  .shift-pill.empty{background:#f3f5f8; color:#b7c0cd; border:1px dashed #cfd7e2;}
+  .row-actions{display:flex; gap:5px;}
+  .icon-btn{
+    border:none; background:none; cursor:pointer; color:var(--gris-700); font-size:14px;
+    padding:4px 5px; border-radius:6px;
+  }
+  .icon-btn:hover{background:var(--gris-200);}
+  .icon-btn.del:hover{color:var(--rojo); background:#fdeeee;}
+
+  .empty-state{padding:40px 20px; text-align:center; color:var(--gris-500);}
+
+  /* ---------- Legend ---------- */
+  .legend{
+    margin-top:14px; background:#fff; border-radius:var(--radius); box-shadow:var(--shadow);
+    padding:12px 14px;
+  }
+  .legend h3{margin:0 0 8px; font-size:13px; color:var(--azul-800);}
+  .legend-items{display:flex; flex-wrap:wrap; gap:8px;}
+  .legend-item{display:flex; align-items:center; gap:7px; font-size:12px; background:var(--gris-100); border-radius:8px; padding:5px 9px;}
+
+  /* ---------- Modal ---------- */
+  .overlay{
+    position:fixed; inset:0; background:rgba(15,24,40,.5); display:none;
+    align-items:center; justify-content:center; z-index:100; padding:14px;
+  }
+  .overlay.show{display:flex;}
+  .modal{
+    background:#fff; border-radius:14px; width:100%; max-width:460px; max-height:90vh;
+    overflow-y:auto; box-shadow:0 14px 40px rgba(0,0,0,.25);
+  }
+  .modal-header{
+    padding:16px 18px; border-bottom:1px solid var(--gris-200); display:flex; align-items:center; justify-content:space-between;
+  }
+  .modal-header h2{font-size:15px; margin:0; color:var(--azul-800);}
+  .modal-close{border:none; background:none; font-size:18px; cursor:pointer; color:var(--gris-700);}
+  .modal-body{padding:16px 18px; display:flex; flex-direction:column; gap:12px;}
+  .modal-footer{padding:14px 18px; border-top:1px solid var(--gris-200); display:flex; justify-content:flex-end; gap:8px;}
+  .form-group{display:flex; flex-direction:column; gap:4px;}
+  .form-group label{font-size:11.5px; font-weight:600; color:var(--gris-700); text-transform:uppercase; letter-spacing:.3px;}
+  .form-group input, .form-group select, .form-group textarea{
+    padding:9px 10px; border:1px solid var(--gris-300); border-radius:8px; font-size:13.5px; font-family:inherit;
+  }
+  .form-row{display:flex; gap:10px;}
+  .form-row > .form-group{flex:1;}
+
+  .shift-picker{display:flex; flex-wrap:wrap; gap:8px;}
+  .shift-opt{
+    border:1px solid var(--gris-300); border-radius:8px; padding:8px 11px; font-size:12.5px; font-weight:700;
+    cursor:pointer; background:#fff;
+  }
+  .shift-opt.selected{outline:2px solid var(--azul-700); outline-offset:1px;}
+  .shift-opt.clear{color:var(--rojo); border-color:#f3c6c6;}
+
+  footer.app-footer{
+    text-align:center; font-size:11px; color:var(--gris-500); padding:18px 10px 26px;
+  }
+
+  @media (max-width: 720px){
+    .topbar h1{font-size:14px;}
+    .toolbar{top:56px;}
+    .field select, .field input{min-width:100px;}
+  }
+  .toast{
+    position:fixed; bottom:18px; left:50%; transform:translateX(-50%);
+    background:#1b2432; color:#fff; padding:10px 18px; border-radius:30px; font-size:13px;
+    z-index:200; opacity:0; pointer-events:none; transition:opacity .25s, transform .25s;
+    box-shadow:0 8px 20px rgba(0,0,0,.25);
+  }
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(-4px);}
+</style>
+</head>
+<body>
+
+<div class="banner-warn" id="storageWarn">
+  ⚠ Este visor no permite guardar los cambios de forma permanente (modo restringido). Abre el archivo <b>index.html</b> directamente en tu navegador para guardar empleados y turnos.
+</div>
+
+<div class="banner-warn" id="backupReminderBanner" style="background:#e6f0fb;border-bottom-color:#b9d4f0;color:#124a85;">
+  🔔 Es momento de tu respaldo programado. <b id="backupReminderFreqText"></b>
+  <button class="btn btn-primary" id="backupReminderBtn" style="margin-left:8px;padding:4px 10px;font-size:11.5px;">Descargar ahora</button>
+  <button class="icon-btn" id="backupReminderDismiss" style="margin-left:4px;">✕</button>
+</div>
+
+<div class="topbar">
+  <img class="logo" src="icons/icon-96.png" alt="logo" />
+  <div class="titles">
+    <h1>Control de Roll de Turnos</h1>
+    <div class="sub">Mantenimiento de Planta &middot; GIMSA / Greenbrier</div>
+  </div>
+  <button class="btn-install" id="btnInstall">⬇ Instalar app</button>
+</div>
+
+<div class="toolbar">
+  <div class="field">
+    <label>Buscar</label>
+    <input type="text" id="fSearch" placeholder="Nombre o ficha..." />
+  </div>
+  <div class="field">
+    <label>Tipo de empleado</label>
+    <select id="fTipo">
+      <option value="">Todos</option>
+      <option value="Empleado">Empleado</option>
+      <option value="Sindicalizado">Sindicalizado</option>
+    </select>
+  </div>
+  <div class="field">
+    <label>Área</label>
+    <select id="fArea"><option value="">Todas</option></select>
+  </div>
+  <div class="field">
+    <label>Cuadrilla</label>
+    <select id="fCuadrilla"><option value="">Todas</option></select>
+  </div>
+
+  <div class="field">
+    <label>Semana</label>
+    <div class="week-nav">
+      <button id="btnPrevWeek" title="Semana anterior">‹</button>
+      <span class="week-label" id="weekLabel">—</span>
+      <button id="btnNextWeek" title="Semana siguiente">›</button>
+      <button id="btnToday" title="Ir a semana actual" style="width:auto;padding:0 10px;font-size:11px;">Hoy</button>
+    </div>
+  </div>
+
+  <div class="spacer"></div>
+
+  <div class="actions">
+    <button class="btn btn-primary" id="btnAddEmp">+ Empleado</button>
+    <button class="btn btn-outline" id="btnLegend">Códigos de turno</button>
+    <button class="btn btn-outline" id="btnGenerate">⚙ Generar 3 semanas</button>
+    <button class="btn btn-outline" id="btnHistory">🕘 Historial</button>
+    <button class="btn btn-outline" id="btnBackup">💾 Respaldo</button>
+    <button class="btn btn-orange" id="btnExportExcel">Exportar Excel</button>
+    <button class="btn btn-orange" id="btnExportPdf">Exportar PDF</button>
+  </div>
+</div>
+
+<div class="content">
+  <div class="summary-row" id="summaryRow"></div>
+
+  <div class="table-wrap">
+    <table class="roster" id="rosterTable">
+      <thead>
+        <tr id="headRow"></tr>
+      </thead>
+      <tbody id="bodyRows"></tbody>
+    </table>
+    <div class="empty-state" id="emptyState" style="display:none;">No hay empleados que coincidan con el filtro.</div>
+  </div>
+
+  <div class="legend">
+    <h3>Leyenda de códigos de turno</h3>
+    <div class="legend-items" id="legendItems"></div>
+  </div>
+</div>
+
+<footer class="app-footer">Control de Roll de Turnos · Datos guardados en este dispositivo · Funciona sin conexión a Internet</footer>
+
+<!-- Modal Empleado -->
+<div class="overlay" id="empOverlay">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="empModalTitle">Nuevo empleado</h2>
+      <button class="modal-close" id="empClose">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Ficha</label>
+          <input type="text" id="empFicha" placeholder="Ej. 31138" />
+        </div>
+        <div class="form-group">
+          <label>Tipo de empleado</label>
+          <select id="empTipo">
+            <option value="Empleado">Empleado</option>
+            <option value="Sindicalizado">Sindicalizado</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Nombre</label>
+        <input type="text" id="empNombre" placeholder="Nombre completo" />
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Área</label>
+          <input type="text" id="empArea" placeholder="Ej. Nave 1-4" list="areaList" />
+          <datalist id="areaList"></datalist>
+        </div>
+        <div class="form-group">
+          <label>Cuadrilla</label>
+          <input type="text" id="empCuadrilla" placeholder="Ej. Cuadrilla 1" list="cuadrillaList" />
+          <datalist id="cuadrillaList"></datalist>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Nota</label>
+        <textarea id="empNota" rows="2" placeholder="Observaciones..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-danger" id="empDeleteBtn" style="display:none;">Eliminar</button>
+      <div class="spacer"></div>
+      <button class="btn btn-outline" id="empCancel">Cancelar</button>
+      <button class="btn btn-primary" id="empSave">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Turno (picker para celda) -->
+<div class="overlay" id="shiftOverlay">
+  <div class="modal" style="max-width:360px;">
+    <div class="modal-header">
+      <h2 id="shiftModalTitle">Asignar turno</h2>
+      <button class="modal-close" id="shiftClose">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="shift-picker" id="shiftPicker"></div>
+      <div class="form-group">
+        <label>Código personalizado</label>
+        <input type="text" id="shiftCustom" placeholder="Escribe un código distinto..." maxlength="6" />
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" id="shiftCancel">Cancelar</button>
+      <button class="btn btn-primary" id="shiftApply">Aplicar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Leyenda -->
+<div class="overlay" id="legendOverlay">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Administrar códigos de turno</h2>
+      <button class="modal-close" id="legendClose">✕</button>
+    </div>
+    <div class="modal-body" id="legendForm"></div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" id="legendAddRow">+ Agregar código</button>
+      <div class="spacer"></div>
+      <button class="btn btn-primary" id="legendSave">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Generar 3 semanas -->
+<div class="overlay" id="generateOverlay">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Generar roll de turnos (próximas 3 semanas)</h2>
+      <button class="modal-close" id="generateClose">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Semana base (plantilla)</label>
+        <div style="font-weight:700;color:var(--azul-800);font-size:14px;" id="genBaseWeekLabel">—</div>
+        <div style="font-size:11.5px;color:var(--gris-700);">Se toma como plantilla la semana que tienes visible actualmente en la tabla. Navega a la semana correcta antes de generar si es necesario.</div>
+      </div>
+      <div class="form-group">
+        <label>Secuencia de rotación de turnos</label>
+        <input type="text" id="genSequence" placeholder="Ej. 3,2,1" />
+        <div style="font-size:11px;color:var(--gris-700);">Códigos separados por coma, en el orden en que rota cada semana (por defecto: 3 → 2 → 1 → 3...).</div>
+      </div>
+      <div class="form-group">
+        <label>Código(s) de descanso</label>
+        <input type="text" id="genRestCodes" placeholder="Ej. D" />
+        <div style="font-size:11px;color:var(--gris-700);">Estos códigos (y cualquier otro código que no esté en la secuencia) se repiten igual cada semana en el mismo día.</div>
+      </div>
+      <div class="form-group" style="flex-direction:row;align-items:center;gap:8px;">
+        <input type="checkbox" id="genOverwrite" style="width:auto;" />
+        <label style="text-transform:none;font-weight:500;font-size:12.5px;">Sobrescribir turnos ya capturados en las 3 semanas destino</label>
+      </div>
+      <div class="form-group" id="genPreviewWeeks" style="font-size:12px;color:var(--gris-700);background:var(--gris-100);border-radius:8px;padding:8px 10px;"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" id="generateCancel">Cancelar</button>
+      <button class="btn btn-primary" id="generateRun">Generar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Historial -->
+<div class="overlay" id="historyOverlay">
+  <div class="modal" style="max-width:640px;">
+    <div class="modal-header">
+      <h2>Historial de cambios</h2>
+      <button class="modal-close" id="historyClose">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Buscar en historial</label>
+        <input type="text" id="historySearch" placeholder="Nombre, ficha o tipo de cambio..." />
+      </div>
+      <div id="historyList" style="display:flex;flex-direction:column;gap:6px;max-height:380px;overflow-y:auto;"></div>
+      <div id="historyEmpty" style="display:none;color:var(--gris-500);text-align:center;padding:20px;">Sin registros en el historial.</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-danger" id="historyClear">Borrar historial</button>
+      <div class="spacer"></div>
+      <button class="btn btn-orange" id="historyExport">Exportar a Excel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Respaldo -->
+<div class="overlay" id="backupOverlay">
+  <div class="modal" style="max-width:560px;">
+    <div class="modal-header">
+      <h2>Respaldo de datos</h2>
+      <button class="modal-close" id="backupClose">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:12.5px;color:var(--gris-700);margin:0;">Los datos de esta aplicación se guardan únicamente en este dispositivo (no hay servidor). Programa recordatorios y snapshots automáticos para no perder información.</p>
+
+      <div class="form-group" id="linkedFileSection" style="background:var(--gris-100);border-radius:8px;padding:10px 12px;gap:8px;">
+        <label style="text-transform:none;font-size:12.5px;font-weight:700;color:var(--azul-800);">💻 Guardado automático en un archivo de este equipo</label>
+        <div style="font-size:11.5px;color:var(--gris-700);">
+          Vincula un archivo en tu computadora (celular (Android/iPhone) y tablet no lo soportan; solo Chrome o Edge de escritorio). Cada cambio se guardará automáticamente ahí, además de en este dispositivo. Si eliges guardarlo dentro de tu carpeta <b>OneDrive</b> o de una biblioteca de <b>SharePoint sincronizada</b> en tu equipo, el archivo también se subirá solo a SharePoint cuando OneDrive sincronice.
+        </div>
+        <div id="linkedFileStatus" style="font-size:12px;"></div>
+        <div id="linkedFileNotSupported" style="display:none;font-size:11.5px;color:var(--rojo);">
+          Este navegador/dispositivo no soporta guardado directo en archivo. En celular o tablet, los datos igual se guardan automáticamente en este dispositivo (memoria del navegador); usa el respaldo manual o los snapshots para resguardarlos.
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn btn-primary" id="linkFileBtn" style="width:fit-content;">🔗 Vincular archivo</button>
+          <button class="btn btn-outline" id="reconnectFileBtn" style="width:fit-content;display:none;">🔄 Reconectar</button>
+          <button class="btn btn-danger" id="unlinkFileBtn" style="width:fit-content;display:none;">Desvincular</button>
+        </div>
+      </div>
+
+      <div class="form-group" style="background:var(--gris-100);border-radius:8px;padding:10px 12px;gap:8px;">
+        <label style="text-transform:none;font-size:12.5px;font-weight:700;color:var(--azul-800);">⏰ Respaldo programado (recordatorio de descarga)</label>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Frecuencia</label>
+            <select id="backupFrequency">
+              <option value="off">Desactivado</option>
+              <option value="daily">Diario</option>
+              <option value="weekly">Semanal</option>
+              <option value="biweekly">Quincenal</option>
+              <option value="monthly">Mensual</option>
+            </select>
+          </div>
+        </div>
+        <div style="font-size:11.5px;color:var(--gris-700);">
+          Último respaldo descargado: <b id="lastBackupInfo">—</b><br>
+          Próximo respaldo programado: <b id="nextBackupInfo">—</b>
+        </div>
+      </div>
+
+      <div class="form-group" style="background:var(--gris-100);border-radius:8px;padding:10px 12px;gap:8px;">
+        <label style="display:flex;flex-direction:row;align-items:center;gap:8px;text-transform:none;font-size:12.5px;font-weight:700;color:var(--azul-800);">
+          <input type="checkbox" id="autoSnapshotEnabled" style="width:auto;" /> 📸 Guardar snapshots automáticos internos
+        </label>
+        <div style="font-size:11.5px;color:var(--gris-700);">
+          Cada vez que abras la app (según la frecuencia elegida arriba), se guarda una copia interna completa en este dispositivo, sin necesidad de descargar nada. Útil para recuperar información si borras algo por error. Se conservan las últimas <b id="snapshotMaxLabel">10</b> copias.
+        </div>
+        <div id="snapshotList" style="display:flex;flex-direction:column;gap:5px;max-height:160px;overflow-y:auto;"></div>
+        <div id="snapshotEmpty" style="display:none;font-size:11.5px;color:var(--gris-500);">Aún no hay snapshots guardados.</div>
+      </div>
+
+      <div class="form-group">
+        <label>Descargar respaldo completo ahora</label>
+        <button class="btn btn-primary" id="backupDownload" style="width:fit-content;">⬇ Descargar respaldo (.json)</button>
+      </div>
+      <hr style="border:none;border-top:1px solid var(--gris-200);width:100%;" />
+      <div class="form-group">
+        <label>Restaurar desde un archivo de respaldo</label>
+        <input type="file" id="backupFile" accept="application/json,.json" />
+        <div style="font-size:11px;color:var(--rojo);">⚠ Restaurar reemplazará los empleados, turnos, leyenda e historial actuales de este dispositivo.</div>
+        <button class="btn btn-danger" id="backupRestore" style="width:fit-content;">Restaurar respaldo</button>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" id="backupCloseFooter">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* =========================================================
+   CONTROL DE ROLL DE TURNOS - Lógica de la aplicación
+   ========================================================= */
+
+const LS_EMP = "rt_employees";
+const LS_SCHED = "rt_schedule";
+const LS_LEGEND = "rt_legend";
+const LS_WEEK = "rt_weekstart";
+const LS_HISTORY = "rt_history";
+const LS_ROTATION = "rt_rotation_settings";
+const LS_BACKUP_SETTINGS = "rt_backup_settings";
+const LS_SNAPSHOTS = "rt_auto_snapshots";
+const HISTORY_MAX = 2000;
+const SNAPSHOT_MAX = 10;
+const DEFAULT_ROTATION = { sequence:["3","2","1"], restCodes:["D"] };
+const DEFAULT_BACKUP_SETTINGS = { frequency:"weekly", lastDownloadAt:null, lastSnapshotAt:null, autoSnapshotEnabled:true };
+const FREQ_DAYS = { daily:1, weekly:7, biweekly:14, monthly:30, off:null };
+const FREQ_LABELS = { daily:"Diario", weekly:"Semanal", biweekly:"Quincenal", monthly:"Mensual", off:"Desactivado" };
+
+const DEFAULT_LEGEND = [
+  { code: "1",  label: "Turno 1",        color: "#dff0d8", text:"#1f6f3a" },
+  { code: "2",  label: "Turno 2",        color: "#d9e8fb", text:"#1d5aa3" },
+  { code: "3",  label: "Turno 3",        color: "#e6ddf7", text:"#5b3a9e" },
+  { code: "E2", label: "Especial T2",    color: "#fdf0c7", text:"#8a6b0c" },
+  { code: "D",  label: "Descanso",       color: "#eceff3", text:"#5a6578" },
+  { code: "F",  label: "Falta",          color: "#fbdada", text:"#a72e2e" },
+  { code: "V",  label: "Vacaciones",     color: "#fdeedd", text:"#b25a16" },
+  { code: "G",  label: "Guardia/Permiso",color: "#e0f5ef", text:"#117a5d" },
+];
+
+const DIAS = ["LUNES","MARTES","MIÉRCOLES","JUEVES","VIERNES","SÁBADO","DOMINGO"];
+
+/* Datos semilla incrustados directamente (no requieren fetch ni servidor) */
+const SEED_EMPLOYEES = [{"id": 1, "area": "Grúas", "cuadrilla": "Cuadrilla 1", "ficha": "31138", "nombre": "Jose Antonio Romero Sanchez", "tipo": "Sindicalizado", "nota": ""}, {"id": 2, "area": "Grúas", "cuadrilla": "Cuadrilla 2", "ficha": "31340", "nombre": "Francisco Daniel Luna", "tipo": "Sindicalizado", "nota": ""}, {"id": 3, "area": "Grúas", "cuadrilla": "Cuadrilla 2", "ficha": "29266", "nombre": "Mauro Cruz Diaz", "tipo": "Sindicalizado", "nota": ""}, {"id": 4, "area": "Grúas", "cuadrilla": "Cuadrilla 2", "ficha": "31084", "nombre": "Edwin Jaziel Cano", "tipo": "Sindicalizado", "nota": ""}, {"id": 5, "area": "Grúas", "cuadrilla": "Cuadrilla 3", "ficha": "18744", "nombre": "Eladio Vazquez Garcia", "tipo": "Sindicalizado", "nota": ""}, {"id": 6, "area": "Grúas", "cuadrilla": "Cuadrilla 3", "ficha": "13466", "nombre": "Jose Antony Martin Flores Cortez", "tipo": "Sindicalizado", "nota": ""}, {"id": 7, "area": "Linea B", "cuadrilla": "Cuadrilla 1", "ficha": "25168", "nombre": "Ivan Toscano Trejo", "tipo": "Sindicalizado", "nota": ""}, {"id": 8, "area": "Linea B", "cuadrilla": "Cuadrilla 1", "ficha": "23874", "nombre": "Jose Ramiro Salazar Jimenez", "tipo": "Sindicalizado", "nota": ""}, {"id": 9, "area": "Linea B", "cuadrilla": "Cuadrilla 1", "ficha": "22592", "nombre": "Josue Avellino Sanchez Ramos", "tipo": "Sindicalizado", "nota": ""}, {"id": 10, "area": "Linea B", "cuadrilla": "Cuadrilla 2", "ficha": "30874", "nombre": "Luis Felipe Hernandes Morales", "tipo": "Sindicalizado", "nota": ""}, {"id": 11, "area": "Linea B", "cuadrilla": "Cuadrilla 2", "ficha": "23084", "nombre": "Jose David Torres Sanchez", "tipo": "Sindicalizado", "nota": ""}, {"id": 12, "area": "Linea B", "cuadrilla": "Cuadrilla 2", "ficha": "30952", "nombre": "Manuel de Jesus Vazquez Zavala", "tipo": "Sindicalizado", "nota": ""}, {"id": 13, "area": "Nave 1-4", "cuadrilla": "Cuadrilla 1", "ficha": "21274", "nombre": "Porfirio Leos Rodriguez", "tipo": "Sindicalizado", "nota": ""}, {"id": 14, "area": "Nave 1-4", "cuadrilla": "Cuadrilla 1", "ficha": "31448", "nombre": "Carlos Fernando Lugo", "tipo": "Sindicalizado", "nota": ""}, {"id": 15, "area": "Nave 1-4", "cuadrilla": "Cuadrilla 1", "ficha": "31128", "nombre": "Adrian Alejandro Villarreal", "tipo": "Sindicalizado", "nota": ""}, {"id": 16, "area": "Nave 1-4", "cuadrilla": "Cuadrilla 2", "ficha": "20206", "nombre": "Juan Gerardo Emanuelle Salazar De La Cruz", "tipo": "Sindicalizado", "nota": ""}, {"id": 17, "area": "Nave 1-4", "cuadrilla": "Cuadrilla 2", "ficha": "31462", "nombre": "Cristofer Isrrael Domingues", "tipo": "Sindicalizado", "nota": ""}, {"id": 18, "area": "Nave 1-4", "cuadrilla": "Cuadrilla 2", "ficha": "18354", "nombre": "Nephtali Hernandez Picazo", "tipo": "Sindicalizado", "nota": ""}, {"id": 19, "area": "Nave 1-4", "cuadrilla": "Cuadrilla 3", "ficha": "31028", "nombre": "Jesus Eduardo Martinez", "tipo": "Sindicalizado", "nota": ""}, {"id": 20, "area": "Nave 1-4", "cuadrilla": "Cuadrilla 3", "ficha": "31450", "nombre": "Jesus Gerardo Mendoza", "tipo": "Sindicalizado", "nota": ""}, {"id": 21, "area": "Nave 1-4", "cuadrilla": "Cuadrilla 3", "ficha": "23044", "nombre": "Emanuel Jozabad Coronado", "tipo": "Sindicalizado", "nota": ""}, {"id": 22, "area": "Nave 6-9", "cuadrilla": "Cuadrilla 1", "ficha": "30306", "nombre": "Victor Valadez Martinez", "tipo": "Sindicalizado", "nota": ""}, {"id": 23, "area": "Nave 6-9", "cuadrilla": "Cuadrilla 1", "ficha": "31120", "nombre": "Erick Gonzalez", "tipo": "Sindicalizado", "nota": ""}, {"id": 24, "area": "Nave 6-9", "cuadrilla": "Cuadrilla 1", "ficha": "31442", "nombre": "Erik Alexis Guzman", "tipo": "Sindicalizado", "nota": ""}, {"id": 25, "area": "Nave 6-9", "cuadrilla": "Cuadrilla 1", "ficha": "18116", "nombre": "Carlos Pules", "tipo": "Sindicalizado", "nota": ""}, {"id": 26, "area": "Nave 6-9", "cuadrilla": "Cuadrilla 2", "ficha": "31124", "nombre": "Jonhatan Edmundo de la Fuente", "tipo": "Sindicalizado", "nota": ""}, {"id": 27, "area": "Nave 6-9", "cuadrilla": "Cuadrilla 2", "ficha": "12400", "nombre": "Hugo Francisco Flores Armendariz", "tipo": "Sindicalizado", "nota": ""}, {"id": 28, "area": "Nave 6-9", "cuadrilla": "Cuadrilla 2", "ficha": "16056", "nombre": "Luis Francisco Gerardo Vargas Castillo", "tipo": "Sindicalizado", "nota": ""}, {"id": 29, "area": "Nave 6-9", "cuadrilla": "Cuadrilla 3", "ficha": "30314", "nombre": "Jared Manuel Garcia Reyna", "tipo": "Sindicalizado", "nota": ""}, {"id": 30, "area": "Nave 6-9", "cuadrilla": "Cuadrilla 3", "ficha": "31094", "nombre": "Gonzalo Ezequiel Rojas", "tipo": "Sindicalizado", "nota": ""}, {"id": 31, "area": "Nave 6-9", "cuadrilla": "Cuadrilla 3", "ficha": "31444", "nombre": "Luis Carlos Guzman", "tipo": "Sindicalizado", "nota": ""}, {"id": 32, "area": "Nave 10", "cuadrilla": "Cuadrilla 1", "ficha": "14182", "nombre": "Jose Francisco Mendoza Villasana", "tipo": "Sindicalizado", "nota": ""}, {"id": 33, "area": "Nave 10", "cuadrilla": "Cuadrilla 1", "ficha": "31086", "nombre": "Julio Cesar Sanchez", "tipo": "Sindicalizado", "nota": ""}, {"id": 34, "area": "Nave 10", "cuadrilla": "Cuadrilla 1", "ficha": "15864", "nombre": "Alan Ramos Zuñiga", "tipo": "Sindicalizado", "nota": ""}, {"id": 35, "area": "Nave 10", "cuadrilla": "Cuadrilla 2", "ficha": "28630", "nombre": "Isaac Antonio Pena Guerrero", "tipo": "Sindicalizado", "nota": ""}, {"id": 36, "area": "Nave 10", "cuadrilla": "Cuadrilla 2", "ficha": "25894", "nombre": "Luis Carlos Ortiz Quiñones", "tipo": "Sindicalizado", "nota": ""}, {"id": 37, "area": "Nave 10", "cuadrilla": "Cuadrilla 2", "ficha": "28342", "nombre": "Oscar Daniel Garcia Torres", "tipo": "Sindicalizado", "nota": ""}, {"id": 38, "area": "Nave 10", "cuadrilla": "Cuadrilla 3", "ficha": "31284", "nombre": "Patricio Rodriguez Ramirez", "tipo": "Sindicalizado", "nota": ""}, {"id": 39, "area": "Nave 10", "cuadrilla": "Cuadrilla 3", "ficha": "30362", "nombre": "Jose Enrique", "tipo": "Sindicalizado", "nota": ""}, {"id": 40, "area": "Nave 10", "cuadrilla": "Cuadrilla 3", "ficha": "22136", "nombre": "Jonathan Eli Hernandez Gutierrez", "tipo": "Sindicalizado", "nota": ""}, {"id": 41, "area": "Lining", "cuadrilla": "Cuadrilla 1", "ficha": "24950", "nombre": "Aurelio Rodriguez Tovar", "tipo": "Sindicalizado", "nota": ""}, {"id": 42, "area": "Lining", "cuadrilla": "Cuadrilla 1", "ficha": "26806", "nombre": "Brandon Octavio Barrera", "tipo": "Sindicalizado", "nota": ""}, {"id": 43, "area": "Lining", "cuadrilla": "Cuadrilla 1", "ficha": "30336", "nombre": "Jose Daniel Maqueda Cortes", "tipo": "Sindicalizado", "nota": ""}, {"id": 44, "area": "Lining", "cuadrilla": "Cuadrilla 2", "ficha": "31434", "nombre": "Jaciel Emmanuel Escobedo", "tipo": "Sindicalizado", "nota": ""}, {"id": 45, "area": "Lining", "cuadrilla": "Cuadrilla 2", "ficha": "13152", "nombre": "Renzo Javier Ramos Chavez", "tipo": "Sindicalizado", "nota": ""}, {"id": 46, "area": "Lining", "cuadrilla": "Cuadrilla 2", "ficha": "31464", "nombre": "Jovany Lara", "tipo": "Sindicalizado", "nota": ""}, {"id": 47, "area": "Lining", "cuadrilla": "Cuadrilla 3", "ficha": "22752", "nombre": "Mauri David Reyna Flores", "tipo": "Sindicalizado", "nota": ""}, {"id": 48, "area": "Lining", "cuadrilla": "Cuadrilla 3", "ficha": "30988", "nombre": "Edgar Ivan Escobedo", "tipo": "Sindicalizado", "nota": ""}, {"id": 49, "area": "Lining", "cuadrilla": "Cuadrilla 3", "ficha": "29350", "nombre": "Ricardo Mata Reyes", "tipo": "Sindicalizado", "nota": ""}, {"id": 50, "area": "Compresores maquinas", "cuadrilla": "Cuadrilla 1", "ficha": "12620", "nombre": "Felipe Jesus Covarrubias Martinez", "tipo": "Sindicalizado", "nota": ""}, {"id": 51, "area": "Compresores maquinas", "cuadrilla": "Cuadrilla 1", "ficha": "25676", "nombre": "Hector Flores de la Cruz", "tipo": "Sindicalizado", "nota": ""}, {"id": 52, "area": "Compresores maquinas", "cuadrilla": "Cuadrilla 1", "ficha": "29232", "nombre": "Osvaldo de Jesus Gonzalez", "tipo": "Sindicalizado", "nota": ""}, {"id": 53, "area": "Compresores maquinas", "cuadrilla": "Cuadrilla 1", "ficha": "3112", "nombre": "Santiago Marquez", "tipo": "Sindicalizado", "nota": ""}, {"id": 54, "area": "Compresores maquinas", "cuadrilla": "Cuadrilla 1", "ficha": "3552", "nombre": "Mario Alberto Contreras Rivas", "tipo": "Sindicalizado", "nota": ""}, {"id": 55, "area": "Compresores maquinas", "cuadrilla": "Cuadrilla 1", "ficha": "3578", "nombre": "Jordi Fabian Salgado Arauza", "tipo": "Sindicalizado", "nota": ""}, {"id": 56, "area": "Fabricacion / Ruedas", "cuadrilla": "Cuadrilla 1", "ficha": "31100", "nombre": "Fernando Reyna Castillo", "tipo": "Sindicalizado", "nota": ""}, {"id": 57, "area": "Fabricacion / Ruedas", "cuadrilla": "Cuadrilla 1", "ficha": "25628", "nombre": "Carlos Emmanuel Ibarra", "tipo": "Sindicalizado", "nota": ""}, {"id": 58, "area": "Fabricacion / Ruedas", "cuadrilla": "Cuadrilla 1", "ficha": "29892", "nombre": "Angel Gonzalez", "tipo": "Sindicalizado", "nota": ""}, {"id": 59, "area": "Fabricacion / Ruedas", "cuadrilla": "Cuadrilla 2", "ficha": "12218", "nombre": "Adan Lopez Espinosa", "tipo": "Sindicalizado", "nota": ""}, {"id": 60, "area": "Nave 1-4", "cuadrilla": "Cuadrilla 2", "ficha": "29766", "nombre": "Hector Jesus Garcia Soto", "tipo": "Sindicalizado", "nota": ""}, {"id": 61, "area": "Fabricacion / Ruedas", "cuadrilla": "Cuadrilla 2", "ficha": "12498", "nombre": "Luis Arturo Lerma Olivares", "tipo": "Sindicalizado", "nota": ""}, {"id": 62, "area": "Fabricacion / Ruedas", "cuadrilla": "Cuadrilla 2", "ficha": "28718", "nombre": "Jesus Eduardo Velazquez de los Santos", "tipo": "Sindicalizado", "nota": ""}, {"id": 63, "area": "Fabricacion / Ruedas", "cuadrilla": "Cuadrilla 3", "ficha": "29286", "nombre": "Isidro Javier Esparza Zamora", "tipo": "Sindicalizado", "nota": ""}, {"id": 64, "area": "Fabricacion / Ruedas", "cuadrilla": "Cuadrilla 3", "ficha": "25670", "nombre": "Luis Gerardo Reyna Hernandez", "tipo": "Sindicalizado", "nota": ""}, {"id": 65, "area": "Fabricacion / Ruedas", "cuadrilla": "Cuadrilla 3", "ficha": "25596", "nombre": "Juan Antonio Ayala Medina", "tipo": "Sindicalizado", "nota": ""}, {"id": 66, "area": "Fabricacion / Ruedas", "cuadrilla": "Cuadrilla 1", "ficha": "30486", "nombre": "Jesus Salvador Zayas Camacho", "tipo": "Sindicalizado", "nota": ""}, {"id": 67, "area": "Fabricacion / Ruedas", "cuadrilla": "Cuadrilla 1", "ficha": "28440", "nombre": "Jesus Emmanuel Garcia Gomez", "tipo": "Sindicalizado", "nota": ""}, {"id": 68, "area": "Fabricacion / Ruedas", "cuadrilla": "Cuadrilla 1", "ficha": "25888", "nombre": "Perez Dominguez Henry Christian", "tipo": "Sindicalizado", "nota": ""}, {"id": 69, "area": "Fabricacion / Ruedas", "cuadrilla": "Cuadrilla 1", "ficha": "31446", "nombre": "Argenis Juan Ernesto Pesina", "tipo": "Sindicalizado", "nota": ""}, {"id": 70, "area": "Nave 1-4", "cuadrilla": "", "ficha": "16774", "nombre": "Roberto Carlos Barboza Mata", "tipo": "Empleado", "nota": ""}, {"id": 71, "area": "Nave 1-4", "cuadrilla": "", "ficha": "21004", "nombre": "Oscar Terrazas Rivas", "tipo": "Empleado", "nota": ""}, {"id": 72, "area": "Nave 1-4", "cuadrilla": "", "ficha": "22188", "nombre": "Gilberto Villanueva De Luna", "tipo": "Empleado", "nota": ""}, {"id": 73, "area": "Nave 1-4", "cuadrilla": "", "ficha": "23736", "nombre": "Gerardo Ivan Lugo Tenorio", "tipo": "Empleado", "nota": ""}, {"id": 74, "area": "Nave 1-4", "cuadrilla": "", "ficha": "5856", "nombre": "Alexis Eliab", "tipo": "Empleado", "nota": ""}, {"id": 75, "area": "Lining / Pintura", "cuadrilla": "", "ficha": "7118", "nombre": "Yonatan Asael Galvan de la Cruz", "tipo": "Empleado", "nota": ""}, {"id": 76, "area": "Fabricacion / Ruedas", "cuadrilla": "", "ficha": "5030", "nombre": "Ramiro Iracheta", "tipo": "Empleado", "nota": ""}, {"id": 77, "area": "Fabricacion / Ruedas", "cuadrilla": "", "ficha": "23048", "nombre": "Luis Armando Torres Siller", "tipo": "Empleado", "nota": ""}, {"id": 78, "area": "Fabricacion / Ruedas", "cuadrilla": "", "ficha": "25870", "nombre": "Rodolfo Ceballos", "tipo": "Empleado", "nota": ""}, {"id": 79, "area": "Nave 1-4", "cuadrilla": "", "ficha": "5758", "nombre": "Salvador Sanchez", "tipo": "Empleado", "nota": ""}, {"id": 80, "area": "Linea B", "cuadrilla": "", "ficha": "19862", "nombre": "Jorge Rogelio Vazquez Andrade", "tipo": "Empleado", "nota": ""}, {"id": 81, "area": "Lining", "cuadrilla": "", "ficha": "16776", "nombre": "Jose Juan Ontiveros Zuñiga", "tipo": "Empleado", "nota": ""}, {"id": 82, "area": "Fabricacion / Ruedas", "cuadrilla": "", "ficha": "24944", "nombre": "Ivan Mendez", "tipo": "Empleado", "nota": ""}, {"id": 83, "area": "Gerencia", "cuadrilla": "", "ficha": "6554", "nombre": "Tania Domique Ramos Silva", "tipo": "Empleado", "nota": ""}, {"id": 84, "area": "Gerencia", "cuadrilla": "", "ficha": "1917", "nombre": "Miguel Angel Morales Vazquez", "tipo": "Empleado", "nota": ""}, {"id": 85, "area": "Planeación", "cuadrilla": "", "ficha": "1160", "nombre": "Jaime Arreola Martinez", "tipo": "Empleado", "nota": ""}, {"id": 86, "area": "Planeación", "cuadrilla": "", "ficha": "6852", "nombre": "Yulissa Elisabeth De la Cruz Rodriguez", "tipo": "Empleado", "nota": ""}, {"id": 87, "area": "Planeación", "cuadrilla": "", "ficha": "5846", "nombre": "Alina Magali Martinez Morin", "tipo": "Empleado", "nota": ""}, {"id": 88, "area": "Predictivo", "cuadrilla": "", "ficha": "25876", "nombre": "Edgar Guadalupe Valle Escobedo", "tipo": "Empleado", "nota": ""}, {"id": 89, "area": "Predictivo", "cuadrilla": "", "ficha": "6414", "nombre": "Jamder Enrique Gonzalez Gonzalez", "tipo": "Empleado", "nota": ""}, {"id": 90, "area": "Predictivo", "cuadrilla": "", "ficha": "28500", "nombre": "Edgar Alfonso Garcia Mendez", "tipo": "Empleado", "nota": ""}, {"id": 91, "area": "Equipo Movil", "cuadrilla": "", "ficha": "4178", "nombre": "Alfonso Quiroz Lopez", "tipo": "Empleado", "nota": ""}];
+
+let employees = [];
+let schedule = {};   // key: `${empId}_${yyyy-mm-dd}` -> code
+let legend = [];
+let history = [];    // [{id, ts, type, description}]
+let rotation = { sequence:["3","2","1"], restCodes:["D"] };
+let backupSettings = { frequency:"weekly", lastDownloadAt:null, lastSnapshotAt:null, autoSnapshotEnabled:true };
+let snapshots = []; // [{id, ts, data}]
+let weekStart = null; // Date (lunes)
+let editingEmpId = null;
+let activeCell = null; // {empId, dateKey}
+let deferredPrompt = null;
+let storageAvailable = true;
+
+/* ---------- Utilidades de fecha ---------- */
+function toKey(d){
+  const y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,"0"), day=String(d.getDate()).padStart(2,"0");
+  return `${y}-${m}-${day}`;
+}
+function fmtDDMMYYYY(d){
+  const y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,"0"), day=String(d.getDate()).padStart(2,"0");
+  return `${day}/${m}/${y}`;
+}
+function addDays(d, n){ const r=new Date(d); r.setDate(r.getDate()+n); return r; }
+function mondayOf(d){
+  const r = new Date(d);
+  const dow = r.getDay(); // 0=domingo
+  const diff = (dow === 0) ? -6 : (1 - dow);
+  r.setDate(r.getDate()+diff);
+  r.setHours(0,0,0,0);
+  return r;
+}
+function weekDates(start){
+  const arr=[];
+  for(let i=0;i<7;i++) arr.push(addDays(start,i));
+  return arr;
+}
+
+/* ---------- Almacenamiento con respaldo en memoria ---------- */
+function testStorage(){
+  try{
+    localStorage.setItem("__rt_test__","1");
+    localStorage.removeItem("__rt_test__");
+    return true;
+  }catch(err){
+    return false;
+  }
+}
+function lsGet(key){
+  if (!storageAvailable) return null;
+  try{ return localStorage.getItem(key); }catch(err){ return null; }
+}
+function lsSet(key, value){
+  if (!storageAvailable) return;
+  try{ localStorage.setItem(key, value); }catch(err){ /* modo restringido */ }
+}
+
+/* ---------- Persistencia ---------- */
+function loadAll(){
+  storageAvailable = testStorage();
+  if (!storageAvailable){
+    document.getElementById("storageWarn").classList.add("show");
+  }
+
+  try{
+    const e = lsGet(LS_EMP);
+    employees = e ? JSON.parse(e) : null;
+  }catch(err){ employees = null; }
+
+  try{
+    const s = lsGet(LS_SCHED);
+    schedule = s ? JSON.parse(s) : {};
+  }catch(err){ schedule = {}; }
+
+  try{
+    const l = lsGet(LS_LEGEND);
+    legend = l ? JSON.parse(l) : JSON.parse(JSON.stringify(DEFAULT_LEGEND));
+  }catch(err){ legend = JSON.parse(JSON.stringify(DEFAULT_LEGEND)); }
+
+  try{
+    const w = lsGet(LS_WEEK);
+    weekStart = w ? new Date(w) : mondayOf(new Date());
+  }catch(err){ weekStart = mondayOf(new Date()); }
+
+  try{
+    const h = lsGet(LS_HISTORY);
+    history = h ? JSON.parse(h) : [];
+  }catch(err){ history = []; }
+
+  try{
+    const r = lsGet(LS_ROTATION);
+    rotation = r ? JSON.parse(r) : JSON.parse(JSON.stringify(DEFAULT_ROTATION));
+  }catch(err){ rotation = JSON.parse(JSON.stringify(DEFAULT_ROTATION)); }
+
+  try{
+    const bs = lsGet(LS_BACKUP_SETTINGS);
+    backupSettings = bs ? JSON.parse(bs) : JSON.parse(JSON.stringify(DEFAULT_BACKUP_SETTINGS));
+  }catch(err){ backupSettings = JSON.parse(JSON.stringify(DEFAULT_BACKUP_SETTINGS)); }
+
+  try{
+    const sn = lsGet(LS_SNAPSHOTS);
+    snapshots = sn ? JSON.parse(sn) : [];
+  }catch(err){ snapshots = []; }
+
+  if (!employees || !employees.length){
+    employees = JSON.parse(JSON.stringify(SEED_EMPLOYEES));
+  }
+}
+
+function saveEmployees(){ lsSet(LS_EMP, JSON.stringify(employees)); scheduleLinkedSave(); }
+function saveSchedule(){ lsSet(LS_SCHED, JSON.stringify(schedule)); scheduleLinkedSave(); }
+function saveLegend(){ lsSet(LS_LEGEND, JSON.stringify(legend)); scheduleLinkedSave(); }
+function saveWeek(){ lsSet(LS_WEEK, weekStart.toISOString()); }
+function saveHistory(){ lsSet(LS_HISTORY, JSON.stringify(history)); scheduleLinkedSave(); }
+function saveRotation(){ lsSet(LS_ROTATION, JSON.stringify(rotation)); scheduleLinkedSave(); }
+function saveBackupSettings(){ lsSet(LS_BACKUP_SETTINGS, JSON.stringify(backupSettings)); }
+function saveSnapshots(){ lsSet(LS_SNAPSHOTS, JSON.stringify(snapshots)); }
+
+/* ---------- Archivo vinculado (guardado automático en disco/SharePoint sincronizado) ---------- */
+const FS_SUPPORTED = (typeof window.showSaveFilePicker === "function");
+const IDB_NAME = "rt_filehandles_db";
+const IDB_STORE = "handles";
+let linkedFileHandle = null;
+let linkedFileName = null;
+let linkedNeedsReconnect = false;
+let lastLinkedSaveAt = null;
+let linkedSaveTimer = null;
+
+function idbOpen(){
+  return new Promise((resolve, reject)=>{
+    const req = indexedDB.open(IDB_NAME, 1);
+    req.onupgradeneeded = ()=>{ req.result.createObjectStore(IDB_STORE); };
+    req.onsuccess = ()=> resolve(req.result);
+    req.onerror = ()=> reject(req.error);
+  });
+}
+async function idbSet(key, value){
+  try{
+    const db = await idbOpen();
+    return new Promise((resolve,reject)=>{
+      const tx = db.transaction(IDB_STORE,"readwrite");
+      tx.objectStore(IDB_STORE).put(value, key);
+      tx.oncomplete = ()=>resolve();
+      tx.onerror = ()=>reject(tx.error);
+    });
+  }catch(err){ /* IndexedDB no disponible (ej. contexto sandboxed) */ }
+}
+async function idbGet(key){
+  try{
+    const db = await idbOpen();
+    return new Promise((resolve,reject)=>{
+      const tx = db.transaction(IDB_STORE,"readonly");
+      const req = tx.objectStore(IDB_STORE).get(key);
+      req.onsuccess = ()=>resolve(req.result);
+      req.onerror = ()=>reject(req.error);
+    });
+  }catch(err){ return null; }
+}
+
+async function linkDataFile(){
+  if (!FS_SUPPORTED){
+    toast("Tu navegador no permite vincular un archivo (usa Chrome o Edge en computadora). Usa el respaldo manual.");
+    return;
+  }
+  try{
+    const handle = await window.showSaveFilePicker({
+      suggestedName: "RollTurnos_Datos.json",
+      types: [{ description: "Archivo de datos de Roll de Turnos", accept: { "application/json": [".json"] } }]
+    });
+    linkedFileHandle = handle;
+    linkedFileName = handle.name;
+    linkedNeedsReconnect = false;
+    idbSet("linkedFile", handle).catch(()=>{}); // no bloquear el guardado si falla el registro persistente del handle
+    await writeLinkedFile();
+    logHistory("respaldo", `Archivo vinculado para guardado automático: ${handle.name}.`);
+    renderLinkedFileStatus();
+    toast("Archivo vinculado: los cambios se guardarán ahí automáticamente");
+  }catch(err){
+    if (err && err.name !== "AbortError"){ toast("No se pudo vincular el archivo"); }
+  }
+}
+
+async function tryRestoreLinkedFile(){
+  if (!FS_SUPPORTED) return;
+  try{
+    const handle = await idbGet("linkedFile");
+    if (!handle) return;
+    linkedFileHandle = handle;
+    linkedFileName = handle.name;
+    const perm = await handle.queryPermission({ mode: "readwrite" });
+    linkedNeedsReconnect = (perm !== "granted");
+    renderLinkedFileStatus();
+  }catch(err){ /* handle inválido o permiso revocado */ }
+}
+
+async function reconnectLinkedFile(){
+  if (!linkedFileHandle) return;
+  try{
+    const perm = await linkedFileHandle.requestPermission({ mode: "readwrite" });
+    if (perm === "granted"){
+      linkedNeedsReconnect = false;
+      await writeLinkedFile();
+      toast("Archivo reconectado");
+    } else {
+      toast("Permiso no concedido");
+    }
+    renderLinkedFileStatus();
+  }catch(err){ toast("No se pudo reconectar el archivo"); }
+}
+
+async function writeLinkedFile(){
+  if (!linkedFileHandle) return;
+  try{
+    const perm = await linkedFileHandle.queryPermission({ mode: "readwrite" });
+    if (perm !== "granted"){ linkedNeedsReconnect = true; renderLinkedFileStatus(); return; }
+    const writable = await linkedFileHandle.createWritable();
+    await writable.write(JSON.stringify(buildBackupPayload(), null, 2));
+    await writable.close();
+    lastLinkedSaveAt = new Date().toISOString();
+    linkedNeedsReconnect = false;
+    renderLinkedFileStatus();
+  }catch(err){ /* fallo silencioso: localStorage sigue siendo la fuente principal */ }
+}
+
+function scheduleLinkedSave(){
+  if (!linkedFileHandle) return;
+  clearTimeout(linkedSaveTimer);
+  linkedSaveTimer = setTimeout(writeLinkedFile, 700);
+}
+
+async function unlinkDataFile(){
+  linkedFileHandle = null;
+  linkedFileName = null;
+  linkedNeedsReconnect = false;
+  await idbSet("linkedFile", null);
+  renderLinkedFileStatus();
+  toast("Archivo desvinculado");
+}
+
+function renderLinkedFileStatus(){
+  const section = document.getElementById("linkedFileSection");
+  if (!section) return;
+  const notSupportedEl = document.getElementById("linkedFileNotSupported");
+  const statusEl = document.getElementById("linkedFileStatus");
+  const linkBtn = document.getElementById("linkFileBtn");
+  const unlinkBtn = document.getElementById("unlinkFileBtn");
+  const reconnectBtn = document.getElementById("reconnectFileBtn");
+
+  if (!FS_SUPPORTED){
+    notSupportedEl.style.display = "block";
+    statusEl.style.display = "none";
+    linkBtn.style.display = "none";
+    unlinkBtn.style.display = "none";
+    reconnectBtn.style.display = "none";
+    return;
+  }
+  notSupportedEl.style.display = "none";
+
+  if (!linkedFileHandle){
+    statusEl.innerHTML = `<span style="color:var(--gris-700);">Sin archivo vinculado todavía.</span>`;
+    linkBtn.style.display = "inline-flex";
+    unlinkBtn.style.display = "none";
+    reconnectBtn.style.display = "none";
+  } else if (linkedNeedsReconnect){
+    statusEl.innerHTML = `⚠ Vinculado a <b>${escapeHtml(linkedFileName)}</b>, pero se perdió el permiso de escritura (normal al reabrir el navegador). Reconecta para seguir guardando ahí.`;
+    linkBtn.style.display = "none";
+    unlinkBtn.style.display = "inline-flex";
+    reconnectBtn.style.display = "inline-flex";
+  } else {
+    statusEl.innerHTML = `✅ Guardando automáticamente en <b>${escapeHtml(linkedFileName)}</b>${lastLinkedSaveAt ? " · última vez " + fmtDateTime(lastLinkedSaveAt) : ""}.`;
+    linkBtn.style.display = "none";
+    unlinkBtn.style.display = "inline-flex";
+    reconnectBtn.style.display = "none";
+  }
+}
+
+/* ---------- Historial ---------- */
+function logHistory(type, description){
+  history.unshift({
+    id: Date.now() + "_" + Math.random().toString(36).slice(2,7),
+    ts: new Date().toISOString(),
+    type,
+    description
+  });
+  if (history.length > HISTORY_MAX){ history = history.slice(0, HISTORY_MAX); }
+  saveHistory();
+}
+function fmtDateTime(iso){
+  const d = new Date(iso);
+  const dd = String(d.getDate()).padStart(2,"0");
+  const mm = String(d.getMonth()+1).padStart(2,"0");
+  const yy = d.getFullYear();
+  const hh = String(d.getHours()).padStart(2,"0");
+  const mi = String(d.getMinutes()).padStart(2,"0");
+  return `${dd}/${mm}/${yy} ${hh}:${mi}`;
+}
+
+/* ---------- Toast ---------- */
+let toastTimer=null;
+function toast(msg){
+  const t=document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.classList.remove("show"), 2200);
+}
+
+/* ---------- Filtros ---------- */
+function getFilters(){
+  return {
+    search: document.getElementById("fSearch").value.trim().toLowerCase(),
+    tipo: document.getElementById("fTipo").value,
+    area: document.getElementById("fArea").value,
+    cuadrilla: document.getElementById("fCuadrilla").value,
+  };
+}
+function filteredEmployees(){
+  const f = getFilters();
+  return employees.filter(e=>{
+    if (f.tipo && e.tipo !== f.tipo) return false;
+    if (f.area && e.area !== f.area) return false;
+    if (f.cuadrilla && e.cuadrilla !== f.cuadrilla) return false;
+    if (f.search){
+      const hay = (e.nombre+" "+e.ficha).toLowerCase();
+      if (!hay.includes(f.search)) return false;
+    }
+    return true;
+  });
+}
+
+function populateSelectOptions(){
+  const areaSel = document.getElementById("fArea");
+  const cuadSel = document.getElementById("fCuadrilla");
+  const areas = Array.from(new Set(employees.map(e=>e.area).filter(Boolean))).sort();
+  const cuads = Array.from(new Set(employees.map(e=>e.cuadrilla).filter(Boolean))).sort();
+
+  const curArea = areaSel.value, curCuad = cuadSel.value;
+  areaSel.innerHTML = '<option value="">Todas</option>' + areas.map(a=>`<option value="${escapeHtml(a)}">${escapeHtml(a)}</option>`).join("");
+  cuadSel.innerHTML = '<option value="">Todas</option>' + cuads.map(c=>`<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join("");
+  areaSel.value = areas.includes(curArea) ? curArea : "";
+  cuadSel.value = cuads.includes(curCuad) ? curCuad : "";
+
+  const areaList = document.getElementById("areaList");
+  const cuadList = document.getElementById("cuadrillaList");
+  areaList.innerHTML = areas.map(a=>`<option value="${escapeHtml(a)}">`).join("");
+  cuadList.innerHTML = cuads.map(c=>`<option value="${escapeHtml(c)}">`).join("");
+}
+
+function escapeHtml(s){
+  return String(s ?? "").replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+
+/* ---------- Render tabla ---------- */
+function legendMap(){
+  const m = {};
+  legend.forEach(l=> m[l.code.toUpperCase()] = l);
+  return m;
+}
+
+function renderWeekLabel(){
+  const dates = weekDates(weekStart);
+  document.getElementById("weekLabel").textContent =
+    `${fmtDDMMYYYY(dates[0])} – ${fmtDDMMYYYY(dates[6])}`;
+}
+
+function renderHeader(){
+  const dates = weekDates(weekStart);
+  const head = document.getElementById("headRow");
+  let html = `
+    <th class="sticky-col col1" style="left:0;min-width:120px;">Área</th>
+    <th class="sticky-col col2" style="left:120px;min-width:100px;">Cuadrilla</th>
+    <th style="min-width:65px;">Ficha</th>
+    <th style="min-width:190px;text-align:left;">Nombre</th>
+    <th style="min-width:95px;">Tipo</th>
+  `;
+  dates.forEach((d,i)=>{
+    html += `<th class="day-head"><span class="day-name">${DIAS[i]}</span><span class="day-date">${fmtDDMMYYYY(d)}</span></th>`;
+  });
+  html += `<th style="min-width:130px;">Nota</th><th style="min-width:70px;">Acciones</th>`;
+  head.innerHTML = html;
+}
+
+function renderBody(){
+  const body = document.getElementById("bodyRows");
+  const dates = weekDates(weekStart);
+  const list = filteredEmployees().sort((a,b)=>{
+    if(a.area!==b.area) return (a.area||"").localeCompare(b.area||"");
+    if(a.cuadrilla!==b.cuadrilla) return (a.cuadrilla||"").localeCompare(b.cuadrilla||"");
+    return (a.nombre||"").localeCompare(b.nombre||"");
+  });
+
+  document.getElementById("emptyState").style.display = list.length ? "none" : "block";
+
+  const lm = legendMap();
+  let html = "";
+  list.forEach(emp=>{
+    html += `<tr data-id="${emp.id}">`;
+    html += `<td class="sticky-col col-area" style="left:0;">${escapeHtml(emp.area)||"—"}</td>`;
+    html += `<td class="sticky-col col-area" style="left:120px;font-weight:400;color:#4a5567;">${escapeHtml(emp.cuadrilla)||"—"}</td>`;
+    html += `<td class="col-ficha">${escapeHtml(emp.ficha)||"—"}</td>`;
+    html += `<td class="col-nombre">${escapeHtml(emp.nombre)}</td>`;
+    html += `<td class="col-tipo"><span class="badge-tipo ${emp.tipo==='Empleado'?'badge-empleado':'badge-sindicalizado'}">${emp.tipo}</span></td>`;
+    dates.forEach(d=>{
+      const key = toKey(d);
+      const code = (schedule[`${emp.id}_${key}`] || "").toUpperCase();
+      const info = lm[code];
+      if (code && info){
+        html += `<td class="day-cell"><span class="shift-pill" style="background:${info.color};color:${info.text};" data-emp="${emp.id}" data-date="${key}" title="${escapeHtml(info.label)}">${escapeHtml(code)}</span></td>`;
+      } else if (code){
+        html += `<td class="day-cell"><span class="shift-pill" style="background:#eef1f5;color:#405070;" data-emp="${emp.id}" data-date="${key}">${escapeHtml(code)}</span></td>`;
+      } else {
+        html += `<td class="day-cell"><span class="shift-pill empty" data-emp="${emp.id}" data-date="${key}">+</span></td>`;
+      }
+    });
+    html += `<td class="col-nota">${escapeHtml(emp.nota)||""}</td>`;
+    html += `<td><div class="row-actions">
+      <button class="icon-btn edit-emp" data-id="${emp.id}" title="Editar">✎</button>
+      <button class="icon-btn del del-emp" data-id="${emp.id}" title="Eliminar">🗑</button>
+    </div></td>`;
+    html += `</tr>`;
+  });
+  body.innerHTML = html;
+
+  // listeners de celdas
+  body.querySelectorAll(".shift-pill").forEach(el=>{
+    el.addEventListener("click", ()=> openShiftPicker(parseInt(el.dataset.emp), el.dataset.date));
+  });
+  body.querySelectorAll(".edit-emp").forEach(el=>{
+    el.addEventListener("click", ()=> openEmpModal(parseInt(el.dataset.id)));
+  });
+  body.querySelectorAll(".del-emp").forEach(el=>{
+    el.addEventListener("click", ()=> deleteEmployee(parseInt(el.dataset.id)));
+  });
+}
+
+function renderSummary(){
+  const list = filteredEmployees();
+  const empleados = list.filter(e=>e.tipo==="Empleado").length;
+  const sindic = list.filter(e=>e.tipo==="Sindicalizado").length;
+  const areas = new Set(list.map(e=>e.area).filter(Boolean)).size;
+  document.getElementById("summaryRow").innerHTML = `
+    <div class="chip">Total visible: <b>${list.length}</b></div>
+    <div class="chip">Empleados: <b>${empleados}</b></div>
+    <div class="chip">Sindicalizados: <b>${sindic}</b></div>
+    <div class="chip">Áreas: <b>${areas}</b></div>
+  `;
+}
+
+function renderLegendBar(){
+  const el = document.getElementById("legendItems");
+  el.innerHTML = legend.map(l=>`
+    <div class="legend-item">
+      <span class="shift-pill" style="background:${l.color};color:${l.text};min-width:26px;height:22px;">${escapeHtml(l.code)}</span>
+      <span>${escapeHtml(l.label)}</span>
+    </div>
+  `).join("");
+}
+
+function renderAll(){
+  populateSelectOptions();
+  renderWeekLabel();
+  renderHeader();
+  renderBody();
+  renderSummary();
+  renderLegendBar();
+}
+
+/* ---------- Modal Empleado ---------- */
+function openEmpModal(id){
+  editingEmpId = id || null;
+  const overlay = document.getElementById("empOverlay");
+  document.getElementById("empModalTitle").textContent = id ? "Editar empleado" : "Nuevo empleado";
+  document.getElementById("empDeleteBtn").style.display = id ? "inline-flex" : "none";
+  if (id){
+    const emp = employees.find(e=>e.id===id);
+    document.getElementById("empFicha").value = emp.ficha || "";
+    document.getElementById("empTipo").value = emp.tipo || "Empleado";
+    document.getElementById("empNombre").value = emp.nombre || "";
+    document.getElementById("empArea").value = emp.area || "";
+    document.getElementById("empCuadrilla").value = emp.cuadrilla || "";
+    document.getElementById("empNota").value = emp.nota || "";
+  } else {
+    ["empFicha","empNombre","empArea","empCuadrilla","empNota"].forEach(id2=>document.getElementById(id2).value="");
+    document.getElementById("empTipo").value = "Empleado";
+  }
+  overlay.classList.add("show");
+}
+function closeEmpModal(){ document.getElementById("empOverlay").classList.remove("show"); }
+
+function saveEmpModal(){
+  const nombre = document.getElementById("empNombre").value.trim();
+  if (!nombre){ toast("El nombre es obligatorio"); return; }
+  const data = {
+    ficha: document.getElementById("empFicha").value.trim(),
+    tipo: document.getElementById("empTipo").value,
+    nombre,
+    area: document.getElementById("empArea").value.trim(),
+    cuadrilla: document.getElementById("empCuadrilla").value.trim(),
+    nota: document.getElementById("empNota").value.trim(),
+  };
+  if (editingEmpId){
+    const emp = employees.find(e=>e.id===editingEmpId);
+    Object.assign(emp, data);
+    logHistory("empleado", `Empleado editado: ${data.nombre} (Ficha ${data.ficha||"—"})`);
+    toast("Empleado actualizado");
+  } else {
+    const newId = employees.length ? Math.max(...employees.map(e=>e.id))+1 : 1;
+    employees.push({ id:newId, ...data });
+    logHistory("empleado", `Empleado agregado: ${data.nombre} (Ficha ${data.ficha||"—"})`);
+    toast("Empleado agregado");
+  }
+  saveEmployees();
+  closeEmpModal();
+  renderAll();
+}
+
+function deleteEmployee(id){
+  const emp = employees.find(e=>e.id===id);
+  if (!emp) return;
+  if (!confirm(`¿Eliminar a ${emp.nombre}? Esta acción no se puede deshacer.`)) return;
+  employees = employees.filter(e=>e.id!==id);
+  Object.keys(schedule).forEach(k=>{ if (k.startsWith(id+"_")) delete schedule[k]; });
+  saveEmployees(); saveSchedule();
+  logHistory("empleado", `Empleado eliminado: ${emp.nombre} (Ficha ${emp.ficha||"—"})`);
+  toast("Empleado eliminado");
+  renderAll();
+}
+
+/* ---------- Modal turno (celda) ---------- */
+function openShiftPicker(empId, dateKey){
+  activeCell = { empId, dateKey };
+  const emp = employees.find(e=>e.id===empId);
+  const dateObj = new Date(dateKey+"T00:00:00");
+  document.getElementById("shiftModalTitle").textContent = `${emp.nombre} · ${fmtDDMMYYYY(dateObj)}`;
+  const current = (schedule[`${empId}_${dateKey}`] || "").toUpperCase();
+
+  const picker = document.getElementById("shiftPicker");
+  let html = legend.map(l=>`
+    <div class="shift-opt ${current===l.code.toUpperCase()?'selected':''}" data-code="${escapeHtml(l.code)}"
+         style="background:${l.color};color:${l.text};">${escapeHtml(l.code)} · ${escapeHtml(l.label)}</div>
+  `).join("");
+  html += `<div class="shift-opt clear" data-code="">Borrar</div>`;
+  picker.innerHTML = html;
+  document.getElementById("shiftCustom").value = legend.some(l=>l.code.toUpperCase()===current) ? "" : current;
+
+  picker.querySelectorAll(".shift-opt").forEach(el=>{
+    el.addEventListener("click", ()=>{
+      picker.querySelectorAll(".shift-opt").forEach(o=>o.classList.remove("selected"));
+      el.classList.add("selected");
+      document.getElementById("shiftCustom").value = "";
+      picker.dataset.chosen = el.dataset.code;
+    });
+  });
+  picker.dataset.chosen = current;
+
+  document.getElementById("shiftOverlay").classList.add("show");
+}
+function closeShiftModal(){ document.getElementById("shiftOverlay").classList.remove("show"); activeCell=null; }
+
+function applyShift(){
+  if (!activeCell) return;
+  const custom = document.getElementById("shiftCustom").value.trim().toUpperCase();
+  const picker = document.getElementById("shiftPicker");
+  const chosen = custom || picker.dataset.chosen || "";
+  const key = `${activeCell.empId}_${activeCell.dateKey}`;
+  const previous = schedule[key] || "";
+  if (chosen){ schedule[key] = chosen; } else { delete schedule[key]; }
+  saveSchedule();
+  if (previous !== chosen){
+    const emp = employees.find(e=>e.id===activeCell.empId);
+    const dateObj = new Date(activeCell.dateKey+"T00:00:00");
+    logHistory("turno", `${emp ? emp.nombre : "Empleado"} · ${fmtDDMMYYYY(dateObj)}: '${previous||"(vacío)"}' → '${chosen||"(vacío)"}'`);
+  }
+  closeShiftModal();
+  renderBody();
+}
+
+/* ---------- Modal Leyenda ---------- */
+function openLegendModal(){
+  renderLegendForm();
+  document.getElementById("legendOverlay").classList.add("show");
+}
+function closeLegendModal(){ document.getElementById("legendOverlay").classList.remove("show"); }
+
+function renderLegendForm(){
+  const el = document.getElementById("legendForm");
+  el.innerHTML = legend.map((l,i)=>`
+    <div class="form-row" data-idx="${i}" style="align-items:flex-end;">
+      <div class="form-group" style="max-width:70px;">
+        <label>Código</label>
+        <input type="text" class="lg-code" value="${escapeHtml(l.code)}" maxlength="6"/>
+      </div>
+      <div class="form-group">
+        <label>Descripción</label>
+        <input type="text" class="lg-label" value="${escapeHtml(l.label)}"/>
+      </div>
+      <div class="form-group" style="max-width:56px;">
+        <label>Color</label>
+        <input type="color" class="lg-color" value="${toHex(l.color)}" style="padding:2px;height:36px;"/>
+      </div>
+      <button class="icon-btn del lg-remove" title="Quitar">🗑</button>
+    </div>
+  `).join("");
+  el.querySelectorAll(".lg-remove").forEach(btn=>{
+    btn.addEventListener("click", (e)=>{
+      const row = e.target.closest("[data-idx]");
+      row.remove();
+    });
+  });
+}
+function toHex(c){
+  if (c.startsWith("#")) return c;
+  return "#dde3eb";
+}
+
+function addLegendRow(){
+  const el = document.getElementById("legendForm");
+  const div = document.createElement("div");
+  div.className="form-row"; div.style.alignItems="flex-end";
+  div.innerHTML = `
+      <div class="form-group" style="max-width:70px;">
+        <label>Código</label>
+        <input type="text" class="lg-code" maxlength="6"/>
+      </div>
+      <div class="form-group">
+        <label>Descripción</label>
+        <input type="text" class="lg-label"/>
+      </div>
+      <div class="form-group" style="max-width:56px;">
+        <label>Color</label>
+        <input type="color" class="lg-color" value="#dde3eb" style="padding:2px;height:36px;"/>
+      </div>
+      <button class="icon-btn del lg-remove" title="Quitar">🗑</button>
+  `;
+  div.querySelector(".lg-remove").addEventListener("click", ()=>div.remove());
+  el.appendChild(div);
+}
+
+function saveLegendForm(){
+  const newLegend = [];
+  document.querySelectorAll("#legendForm .form-row").forEach(row=>{
+    const code = row.querySelector(".lg-code").value.trim().toUpperCase();
+    const label = row.querySelector(".lg-label").value.trim();
+    const color = row.querySelector(".lg-color").value;
+    if (code && label){
+      newLegend.push({ code, label, color, text: contrastText(color) });
+    }
+  });
+  if (!newLegend.length){ toast("Agrega al menos un código"); return; }
+  legend = newLegend;
+  saveLegend();
+  logHistory("leyenda", `Leyenda de códigos actualizada (${legend.length} códigos).`);
+  closeLegendModal();
+  renderAll();
+  toast("Leyenda actualizada");
+}
+function contrastText(hex){
+  const c = hex.replace("#","");
+  const r = parseInt(c.substr(0,2),16), g=parseInt(c.substr(2,2),16), b=parseInt(c.substr(4,2),16);
+  const lum = (0.299*r + 0.587*g + 0.114*b)/255;
+  return lum > 0.6 ? "#2a2a2a" : "#1a1a1a";
+}
+
+/* ---------- Exportar Excel ---------- */
+function exportExcel(){
+  const dates = weekDates(weekStart);
+  const list = filteredEmployees().sort((a,b)=>{
+    if(a.area!==b.area) return (a.area||"").localeCompare(b.area||"");
+    if(a.cuadrilla!==b.cuadrilla) return (a.cuadrilla||"").localeCompare(b.cuadrilla||"");
+    return (a.nombre||"").localeCompare(b.nombre||"");
+  });
+  const headRow1 = ["AREA","CUADRILLA","FICHA","NOMBRE","TIPO", ...DIAS, "NOTA"];
+  const headRow2 = ["","","","","", ...dates.map(d=>fmtDDMMYYYY(d)), ""];
+  const rows = [headRow1, headRow2];
+  list.forEach(emp=>{
+    const row = [emp.area||"", emp.cuadrilla||"", emp.ficha||"", emp.nombre||"", emp.tipo||""];
+    dates.forEach(d=>{
+      row.push(schedule[`${emp.id}_${toKey(d)}`] || "");
+    });
+    row.push(emp.nota||"");
+    rows.push(row);
+  });
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  ws["!cols"] = [{wch:16},{wch:13},{wch:8},{wch:30},{wch:14},
+    ...DIAS.map(()=>({wch:9})), {wch:22}];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Roll de turnos");
+
+  const legendRows = [["CÓDIGO","DESCRIPCIÓN"], ...legend.map(l=>[l.code,l.label])];
+  const ws2 = XLSX.utils.aoa_to_sheet(legendRows);
+  XLSX.utils.book_append_sheet(wb, ws2, "Leyenda");
+
+  const fname = `Roll_Turnos_${toKey(dates[0])}_a_${toKey(dates[6])}.xlsx`;
+  XLSX.writeFile(wb, fname);
+  toast("Excel exportado");
+}
+
+/* ---------- Exportar PDF ---------- */
+function exportPdf(){
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation:"landscape", unit:"pt", format:"a4" });
+  const dates = weekDates(weekStart);
+  const list = filteredEmployees().sort((a,b)=>{
+    if(a.area!==b.area) return (a.area||"").localeCompare(b.area||"");
+    if(a.cuadrilla!==b.cuadrilla) return (a.cuadrilla||"").localeCompare(b.cuadrilla||"");
+    return (a.nombre||"").localeCompare(b.nombre||"");
+  });
+
+  doc.setFontSize(13);
+  doc.setTextColor(20,40,70);
+  doc.text("Control de Roll de Turnos", 32, 30);
+  doc.setFontSize(9.5);
+  doc.setTextColor(90,100,120);
+  doc.text(`Semana: ${fmtDDMMYYYY(dates[0])} – ${fmtDDMMYYYY(dates[6])}`, 32, 45);
+
+  const head = [["Área","Cuadrilla","Ficha","Nombre","Tipo", ...DIAS.map((d,i)=>`${d}\n${fmtDDMMYYYY(dates[i])}`), "Nota"]];
+  const body = list.map(emp=>{
+    const row = [emp.area||"", emp.cuadrilla||"", emp.ficha||"", emp.nombre||"", emp.tipo||""];
+    dates.forEach(d=> row.push(schedule[`${emp.id}_${toKey(d)}`] || ""));
+    row.push(emp.nota||"");
+    return row;
+  });
+
+  doc.autoTable({
+    head, body,
+    startY: 56,
+    styles:{ fontSize:6.8, cellPadding:3, valign:"middle" },
+    headStyles:{ fillColor:[22,50,88], textColor:255, fontSize:6.6 },
+    columnStyles:{
+      0:{cellWidth:62}, 1:{cellWidth:52}, 2:{cellWidth:34}, 3:{cellWidth:110}, 4:{cellWidth:48},
+    },
+    theme:"grid",
+    margin:{left:24, right:24},
+  });
+
+  const dates0 = toKey(dates[0]), dates6 = toKey(dates[6]);
+  doc.save(`Roll_Turnos_${dates0}_a_${dates6}.pdf`);
+  toast("PDF exportado");
+}
+
+/* ---------- Generar 3 semanas (rotación automática) ---------- */
+function openGenerateModal(){
+  const baseDates = weekDates(weekStart);
+  document.getElementById("genBaseWeekLabel").textContent =
+    `${fmtDDMMYYYY(baseDates[0])} – ${fmtDDMMYYYY(baseDates[6])}`;
+  document.getElementById("genSequence").value = rotation.sequence.join(",");
+  document.getElementById("genRestCodes").value = rotation.restCodes.join(",");
+  document.getElementById("genOverwrite").checked = false;
+
+  const previewParts = [];
+  for (let w=1; w<=3; w++){
+    const d = weekDates(addDays(weekStart, 7*w));
+    previewParts.push(`Semana ${w}: ${fmtDDMMYYYY(d[0])} – ${fmtDDMMYYYY(d[6])}`);
+  }
+  document.getElementById("genPreviewWeeks").innerHTML = "Se generarán estas semanas:<br>" + previewParts.join("<br>");
+
+  document.getElementById("generateOverlay").classList.add("show");
+}
+function closeGenerateModal(){ document.getElementById("generateOverlay").classList.remove("show"); }
+
+function runGenerate(){
+  const sequence = document.getElementById("genSequence").value
+    .split(",").map(s=>s.trim().toUpperCase()).filter(Boolean);
+  const restCodes = document.getElementById("genRestCodes").value
+    .split(",").map(s=>s.trim().toUpperCase()).filter(Boolean);
+  const overwrite = document.getElementById("genOverwrite").checked;
+
+  if (!sequence.length){ toast("Define al menos un código en la secuencia de rotación"); return; }
+
+  rotation = { sequence, restCodes };
+  saveRotation();
+
+  const baseDates = weekDates(weekStart);
+  let updatedCells = 0;
+  const updatedEmployees = new Set();
+
+  for (let w=1; w<=3; w++){
+    const targetDates = weekDates(addDays(weekStart, 7*w));
+    employees.forEach(emp=>{
+      for (let d=0; d<7; d++){
+        const baseKey = `${emp.id}_${toKey(baseDates[d])}`;
+        const baseCode = (schedule[baseKey] || "").toUpperCase();
+        if (!baseCode) continue;
+
+        const targetKey = `${emp.id}_${toKey(targetDates[d])}`;
+        if (!overwrite && schedule[targetKey]) continue;
+
+        let newCode = baseCode;
+        const idx = sequence.indexOf(baseCode);
+        if (idx !== -1){
+          newCode = sequence[(idx + w) % sequence.length];
+        }
+        // los códigos de descanso u otros códigos no listados en la secuencia se repiten igual
+        schedule[targetKey] = newCode;
+        updatedCells++;
+        updatedEmployees.add(emp.id);
+      }
+    });
+  }
+
+  saveSchedule();
+  const rangeTxt = `${fmtDDMMYYYY(baseDates[0])}–${fmtDDMMYYYY(baseDates[6])}`;
+  logHistory("generar", `Generación automática de 3 semanas a partir de la semana ${rangeTxt} (secuencia ${sequence.join("→")}): ${updatedCells} celdas actualizadas para ${updatedEmployees.size} empleados.`);
+  closeGenerateModal();
+  renderAll();
+  toast(`Turnos generados: ${updatedCells} celdas en 3 semanas`);
+}
+
+/* ---------- Historial ---------- */
+function openHistoryModal(){
+  document.getElementById("historySearch").value = "";
+  renderHistoryList();
+  document.getElementById("historyOverlay").classList.add("show");
+}
+function closeHistoryModal(){ document.getElementById("historyOverlay").classList.remove("show"); }
+
+function renderHistoryList(){
+  const q = document.getElementById("historySearch").value.trim().toLowerCase();
+  const list = history.filter(h => !q || h.description.toLowerCase().includes(q) || h.type.toLowerCase().includes(q));
+  const container = document.getElementById("historyList");
+  document.getElementById("historyEmpty").style.display = list.length ? "none" : "block";
+
+  const typeLabels = { turno:"Turno", empleado:"Empleado", leyenda:"Leyenda", generar:"Generación", respaldo:"Respaldo" };
+  const typeColors = { turno:"#1d5aa3", empleado:"#117a5d", leyenda:"#8a6b0c", generar:"#5b3a9e", respaldo:"#b25a16" };
+
+  container.innerHTML = list.map(h=>`
+    <div style="border:1px solid var(--gris-200);border-radius:8px;padding:8px 10px;">
+      <div style="display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:3px;">
+        <span style="font-size:10.5px;font-weight:700;color:${typeColors[h.type]||'#4a5567'};text-transform:uppercase;letter-spacing:.3px;">${escapeHtml(typeLabels[h.type]||h.type)}</span>
+        <span style="font-size:10.5px;color:var(--gris-500);white-space:nowrap;">${fmtDateTime(h.ts)}</span>
+      </div>
+      <div style="font-size:12.5px;color:#1b2432;">${escapeHtml(h.description)}</div>
+    </div>
+  `).join("");
+}
+
+function clearHistory(){
+  if (!confirm("¿Borrar todo el historial de cambios? Esta acción no se puede deshacer.")) return;
+  history = [];
+  saveHistory();
+  renderHistoryList();
+  toast("Historial borrado");
+}
+
+function exportHistoryExcel(){
+  if (!history.length){ toast("No hay historial para exportar"); return; }
+  const rows = [["FECHA Y HORA","TIPO","DESCRIPCIÓN"]];
+  history.forEach(h=> rows.push([fmtDateTime(h.ts), h.type, h.description]));
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  ws["!cols"] = [{wch:18},{wch:14},{wch:80}];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Historial");
+  XLSX.writeFile(wb, `Historial_Roll_Turnos_${toKey(new Date())}.xlsx`);
+  toast("Historial exportado");
+}
+
+/* ---------- Respaldo (backup / restore / programación / snapshots) ---------- */
+function buildBackupPayload(){
+  return {
+    app: "Control de Roll de Turnos",
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    employees, schedule, legend, history, rotation
+  };
+}
+
+function addDaysDate(d, n){ return addDays(d, n); }
+
+function nextDueDate(lastIso, freq){
+  const days = FREQ_DAYS[freq];
+  if (days == null) return null; // "off"
+  if (!lastIso) return new Date(0); // nunca respaldado -> vencido de inmediato
+  return addDaysDate(new Date(lastIso), days);
+}
+
+function openBackupModal(){
+  document.getElementById("backupFile").value = "";
+  document.getElementById("backupFrequency").value = backupSettings.frequency || "weekly";
+  document.getElementById("autoSnapshotEnabled").checked = !!backupSettings.autoSnapshotEnabled;
+  document.getElementById("snapshotMaxLabel").textContent = SNAPSHOT_MAX;
+  renderBackupInfo();
+  renderSnapshotList();
+  renderLinkedFileStatus();
+  document.getElementById("backupOverlay").classList.add("show");
+}
+function closeBackupModal(){ document.getElementById("backupOverlay").classList.remove("show"); }
+
+function renderBackupInfo(){
+  const lastEl = document.getElementById("lastBackupInfo");
+  const nextEl = document.getElementById("nextBackupInfo");
+  lastEl.textContent = backupSettings.lastDownloadAt ? fmtDateTime(backupSettings.lastDownloadAt) : "Nunca";
+  if (backupSettings.frequency === "off"){
+    nextEl.textContent = "Recordatorio desactivado";
+  } else if (!backupSettings.lastDownloadAt){
+    nextEl.textContent = "Pendiente (aún no se ha descargado ningún respaldo)";
+  } else {
+    const due = nextDueDate(backupSettings.lastDownloadAt, backupSettings.frequency);
+    nextEl.textContent = due ? fmtDateTime(due.toISOString()) : "—";
+  }
+}
+
+function renderSnapshotList(){
+  const container = document.getElementById("snapshotList");
+  document.getElementById("snapshotEmpty").style.display = snapshots.length ? "none" : "block";
+  container.innerHTML = snapshots.slice().reverse().map(s=>`
+    <div style="display:flex;justify-content:space-between;align-items:center;border:1px solid var(--gris-200);border-radius:7px;padding:6px 9px;font-size:11.5px;">
+      <span>${fmtDateTime(s.ts)} · ${s.data.employees.length} empleados · ${Object.keys(s.data.schedule).length} turnos</span>
+      <div style="display:flex;gap:4px;">
+        <button class="btn btn-outline snap-restore" data-id="${s.id}" style="padding:4px 8px;font-size:11px;">Restaurar</button>
+        <button class="btn btn-outline snap-download" data-id="${s.id}" style="padding:4px 8px;font-size:11px;">⬇</button>
+      </div>
+    </div>
+  `).join("");
+  container.querySelectorAll(".snap-restore").forEach(btn=>{
+    btn.addEventListener("click", ()=> restoreSnapshot(btn.dataset.id));
+  });
+  container.querySelectorAll(".snap-download").forEach(btn=>{
+    btn.addEventListener("click", ()=> downloadSnapshot(btn.dataset.id));
+  });
+}
+
+function updateBackupFrequency(){
+  backupSettings.frequency = document.getElementById("backupFrequency").value;
+  saveBackupSettings();
+  renderBackupInfo();
+  checkBackupReminder();
+  toast(`Frecuencia de respaldo: ${FREQ_LABELS[backupSettings.frequency]}`);
+}
+
+function updateAutoSnapshotToggle(){
+  backupSettings.autoSnapshotEnabled = document.getElementById("autoSnapshotEnabled").checked;
+  saveBackupSettings();
+  toast(backupSettings.autoSnapshotEnabled ? "Snapshots automáticos activados" : "Snapshots automáticos desactivados");
+}
+
+function downloadBackup(){
+  const payload = buildBackupPayload();
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type:"application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `Respaldo_Roll_Turnos_${toKey(new Date())}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+  backupSettings.lastDownloadAt = new Date().toISOString();
+  saveBackupSettings();
+  logHistory("respaldo", `Respaldo descargado (${employees.length} empleados, ${Object.keys(schedule).length} registros de turno).`);
+  hideBackupReminderBanner();
+  renderBackupInfo();
+  toast("Respaldo descargado");
+}
+
+function applyRestoredData(data, sourceLabel){
+  employees = data.employees || [];
+  schedule = data.schedule || {};
+  legend = data.legend && data.legend.length ? data.legend : JSON.parse(JSON.stringify(DEFAULT_LEGEND));
+  history = Array.isArray(data.history) ? data.history : [];
+  rotation = data.rotation || JSON.parse(JSON.stringify(DEFAULT_ROTATION));
+  saveEmployees(); saveSchedule(); saveLegend(); saveHistory(); saveRotation();
+  logHistory("respaldo", `Respaldo restaurado desde ${sourceLabel} (${employees.length} empleados, ${Object.keys(schedule).length} registros de turno).`);
+  renderAll();
+  toast("Respaldo restaurado correctamente");
+}
+
+function restoreBackup(){
+  const fileInput = document.getElementById("backupFile");
+  const file = fileInput.files && fileInput.files[0];
+  if (!file){ toast("Selecciona un archivo de respaldo"); return; }
+  if (!confirm("Esto reemplazará los empleados, turnos, leyenda e historial actuales. ¿Continuar?")) return;
+
+  const reader = new FileReader();
+  reader.onload = (e)=>{
+    try{
+      const data = JSON.parse(e.target.result);
+      if (!data || !Array.isArray(data.employees)){
+        toast("El archivo no parece un respaldo válido");
+        return;
+      }
+      applyRestoredData(data, "archivo");
+      closeBackupModal();
+    }catch(err){
+      toast("No se pudo leer el archivo de respaldo");
+    }
+  };
+  reader.readAsText(file);
+}
+
+/* ---------- Snapshots automáticos internos ---------- */
+function maybeCreateAutoSnapshot(){
+  if (!backupSettings.autoSnapshotEnabled) return;
+  if (backupSettings.frequency === "off") return;
+  const due = nextDueDate(backupSettings.lastSnapshotAt, backupSettings.frequency);
+  if (!due || new Date() < due) return;
+
+  const snap = { id: Date.now()+"_"+Math.random().toString(36).slice(2,7), ts: new Date().toISOString(), data: JSON.parse(JSON.stringify(buildBackupPayload())) };
+  snapshots.push(snap);
+  if (snapshots.length > SNAPSHOT_MAX){ snapshots = snapshots.slice(snapshots.length - SNAPSHOT_MAX); }
+  backupSettings.lastSnapshotAt = snap.ts;
+  saveSnapshots();
+  saveBackupSettings();
+  logHistory("respaldo", `Snapshot automático interno creado (${snap.data.employees.length} empleados, ${Object.keys(snap.data.schedule).length} registros de turno).`);
+}
+
+function restoreSnapshot(id){
+  const snap = snapshots.find(s=>s.id===id);
+  if (!snap) return;
+  if (!confirm(`¿Restaurar el snapshot del ${fmtDateTime(snap.ts)}? Esto reemplazará los datos actuales.`)) return;
+  applyRestoredData(snap.data, `snapshot interno (${fmtDateTime(snap.ts)})`);
+  renderSnapshotList();
+}
+
+function downloadSnapshot(id){
+  const snap = snapshots.find(s=>s.id===id);
+  if (!snap) return;
+  const blob = new Blob([JSON.stringify(snap.data, null, 2)], { type:"application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `Snapshot_Roll_Turnos_${toKey(new Date(snap.ts))}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+  toast("Snapshot descargado");
+}
+
+/* ---------- Recordatorio de respaldo programado ---------- */
+function checkBackupReminder(){
+  const banner = document.getElementById("backupReminderBanner");
+  if (backupSettings.frequency === "off"){
+    banner.classList.remove("show");
+    return;
+  }
+  const due = nextDueDate(backupSettings.lastDownloadAt, backupSettings.frequency);
+  const isDue = due && new Date() >= due;
+  const dismissedKey = "rt_reminder_dismissed_" + toKey(new Date());
+  const dismissedToday = sessionStorage ? sessionStorage.getItem(dismissedKey) : null;
+  if (isDue && !dismissedToday){
+    document.getElementById("backupReminderFreqText").textContent =
+      `(frecuencia: ${FREQ_LABELS[backupSettings.frequency]})`;
+    banner.classList.add("show");
+  } else {
+    banner.classList.remove("show");
+  }
+}
+function hideBackupReminderBanner(){
+  document.getElementById("backupReminderBanner").classList.remove("show");
+}
+function dismissBackupReminder(){
+  try{ sessionStorage.setItem("rt_reminder_dismissed_" + toKey(new Date()), "1"); }catch(err){}
+  hideBackupReminderBanner();
+}
+
+/* ---------- PWA instalación ---------- */
+window.addEventListener("beforeinstallprompt", (e)=>{
+  e.preventDefault();
+  deferredPrompt = e;
+  document.getElementById("btnInstall").classList.add("show");
+});
+document.getElementById("btnInstall").addEventListener("click", async ()=>{
+  if (!deferredPrompt) return;
+  deferredPrompt.prompt();
+  await deferredPrompt.userChoice;
+  deferredPrompt = null;
+  document.getElementById("btnInstall").classList.remove("show");
+});
+window.addEventListener("appinstalled", ()=>{
+  document.getElementById("btnInstall").classList.remove("show");
+  toast("Aplicación instalada");
+});
+
+/* ---------- Service worker (si el entorno lo permite) ---------- */
+try{
+  if ("serviceWorker" in navigator && (location.protocol === "https:" || location.hostname === "localhost")){
+    window.addEventListener("load", ()=>{
+      navigator.serviceWorker.register("service-worker.js").catch(()=>{});
+    });
+  }
+}catch(err){ /* contexto restringido (iframe sandbox): se omite */ }
+
+/* ---------- Eventos ---------- */
+function bindEvents(){
+  document.getElementById("fSearch").addEventListener("input", renderAll);
+  document.getElementById("fTipo").addEventListener("change", renderAll);
+  document.getElementById("fArea").addEventListener("change", renderAll);
+  document.getElementById("fCuadrilla").addEventListener("change", renderAll);
+
+  document.getElementById("btnPrevWeek").addEventListener("click", ()=>{
+    weekStart = addDays(weekStart,-7); saveWeek(); renderAll();
+  });
+  document.getElementById("btnNextWeek").addEventListener("click", ()=>{
+    weekStart = addDays(weekStart,7); saveWeek(); renderAll();
+  });
+  document.getElementById("btnToday").addEventListener("click", ()=>{
+    weekStart = mondayOf(new Date()); saveWeek(); renderAll();
+  });
+
+  document.getElementById("btnAddEmp").addEventListener("click", ()=>openEmpModal(null));
+  document.getElementById("empClose").addEventListener("click", closeEmpModal);
+  document.getElementById("empCancel").addEventListener("click", closeEmpModal);
+  document.getElementById("empSave").addEventListener("click", saveEmpModal);
+  document.getElementById("empDeleteBtn").addEventListener("click", ()=>{
+    if (editingEmpId){ closeEmpModal(); deleteEmployee(editingEmpId); }
+  });
+
+  document.getElementById("shiftClose").addEventListener("click", closeShiftModal);
+  document.getElementById("shiftCancel").addEventListener("click", closeShiftModal);
+  document.getElementById("shiftApply").addEventListener("click", applyShift);
+
+  document.getElementById("btnLegend").addEventListener("click", openLegendModal);
+  document.getElementById("legendClose").addEventListener("click", closeLegendModal);
+  document.getElementById("legendAddRow").addEventListener("click", addLegendRow);
+  document.getElementById("legendSave").addEventListener("click", saveLegendForm);
+
+  document.getElementById("btnExportExcel").addEventListener("click", exportExcel);
+  document.getElementById("btnExportPdf").addEventListener("click", exportPdf);
+
+  document.getElementById("btnGenerate").addEventListener("click", openGenerateModal);
+  document.getElementById("generateClose").addEventListener("click", closeGenerateModal);
+  document.getElementById("generateCancel").addEventListener("click", closeGenerateModal);
+  document.getElementById("generateRun").addEventListener("click", runGenerate);
+
+  document.getElementById("btnHistory").addEventListener("click", openHistoryModal);
+  document.getElementById("historyClose").addEventListener("click", closeHistoryModal);
+  document.getElementById("historySearch").addEventListener("input", renderHistoryList);
+  document.getElementById("historyClear").addEventListener("click", clearHistory);
+  document.getElementById("historyExport").addEventListener("click", exportHistoryExcel);
+
+  document.getElementById("btnBackup").addEventListener("click", openBackupModal);
+  document.getElementById("backupClose").addEventListener("click", closeBackupModal);
+  document.getElementById("backupCloseFooter").addEventListener("click", closeBackupModal);
+  document.getElementById("backupDownload").addEventListener("click", downloadBackup);
+  document.getElementById("backupRestore").addEventListener("click", restoreBackup);
+  document.getElementById("backupFrequency").addEventListener("change", updateBackupFrequency);
+  document.getElementById("autoSnapshotEnabled").addEventListener("change", updateAutoSnapshotToggle);
+
+  document.getElementById("backupReminderBtn").addEventListener("click", downloadBackup);
+  document.getElementById("backupReminderDismiss").addEventListener("click", dismissBackupReminder);
+
+  document.getElementById("linkFileBtn").addEventListener("click", linkDataFile);
+  document.getElementById("reconnectFileBtn").addEventListener("click", reconnectLinkedFile);
+  document.getElementById("unlinkFileBtn").addEventListener("click", unlinkDataFile);
+
+  [document.getElementById("empOverlay"), document.getElementById("shiftOverlay"), document.getElementById("legendOverlay"),
+   document.getElementById("generateOverlay"), document.getElementById("historyOverlay"), document.getElementById("backupOverlay")]
+    .forEach(ov=> ov.addEventListener("click", (e)=>{ if (e.target===ov) ov.classList.remove("show"); }));
+}
+
+/* ---------- Init ---------- */
+(function init(){
+  loadAll();
+  bindEvents();
+  renderAll();
+  maybeCreateAutoSnapshot();
+  checkBackupReminder();
+  tryRestoreLinkedFile();
+})();
+</script>
+</body>
+</html>

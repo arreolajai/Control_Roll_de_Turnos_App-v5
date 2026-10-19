@@ -1,0 +1,821 @@
+[
+  {
+    "id": 1,
+    "area": "Grúas",
+    "cuadrilla": "Cuadrilla 1",
+    "ficha": "31138",
+    "nombre": "Jose Antonio Romero Sanchez",
+    "tipo": "Sindicalizado",
+    "nota": ""
+  },
+  {
+    "id": 2,
+    "area": "Grúas",
+    "cuadrilla": "Cuadrilla 2",
+    "ficha": "31340",
+    "nombre": "Francisco Daniel Luna",
+    "tipo": "Sindicalizado",
+    "nota": ""
+  },
+  {
+    "id": 3,
+    "area": "Grúas",
+    "cuadrilla": "Cuadrilla 2",
+    "ficha": "29266",
+    "nombre": "Mauro Cruz Diaz",
+    "tipo": "Sindicalizado",
+    "nota": ""
+  },
+  {
+    "id": 4,
+    "area": "Grúas",
+    "cuadrilla": "Cuadrilla 2",
+    "ficha": "31084",
+    "nombre": "Edwin Jaziel Cano",
+    "tipo": "Sindicalizado",
+    "nota": ""
+  },
+  {
+    "id": 5,
+    "area": "Grúas",
+    "cuadrilla": "Cuadrilla 3",
+    "ficha": "18744",
+    "nombre": "Eladio Vazquez Garcia",
+    "tipo": "Sindicalizado",
+    "nota": ""
+  },
+  {
+    "id": 6,
+    "area": "Grúas",
+    "cuadrilla": "Cuadrilla 3",
+    "ficha": "13466",
+    "nombre": "Jose Antony Martin Flores Cortez",
+    "tipo": "Sindicalizado",
+    "nota": ""
+  },
+  {
+    "id": 7,
+    "area": "Linea B",
+    "cuadrilla": "Cuadrilla 1",
+    "ficha": "25168",
+    "nombre": "Ivan Toscano Trejo",
+    "tipo": "Sindicalizado",
+    "nota": ""
+  },
+  {
+    "id": 8,
+    "area": "Linea B",
+    "cuadrilla": "Cuadrilla 1",
+    "ficha": "23874",
+    "nombre": "Jose Ramiro Salazar Jimenez",
+    "tipo": "Sindicalizado",
+    "nota": ""
+  },
+  {
+    "id": 9,
+    "area": "Linea B",
+    "cuadrilla": "Cuadrilla 1",
+    "ficha": "22592",
+    "nombre": "Josue Avellino Sanchez Ramos",
+    "tipo": "Sindicalizado",
+    "nota": ""
+  },
+  {
+    "id": 10,
+    "area": "Linea B",
+    "cuadrilla": "Cuadrilla 2",
+    "ficha": "30874",
+    "nombre": "Luis Felipe Hernandes Morales",
+    "tipo": "Sindicalizado",
+    "nota": ""
+  },
+  {
+    "id": 11,
+    "area": "Linea B",
+    "cuadrilla": "Cuadrilla 2",
+    "ficha": "23084",
+    "nombre": "Jose David Torres Sanchez",
+    "tipo": "Sindicalizado",
+    "nota": ""
+  },
+  {
+    "id": 12,
+    "area": "Linea B",
+    "cuadrilla": "Cuadrilla 2",
+    "ficha": "30952",
+    "nombre": "Manuel de Jesus Vazquez Zavala",
+    "tipo": "Sindicalizado",
+    "nota": ""
+  },
+  {
+    "id": 13,
+    "area": "Nave 1-4",
+    "cuadrilla": "Cuadrilla 1",
+    "ficha": "21274",
+    "nombre": "Porfirio Leos Rodriguez",
+    "tipo": "Sindicalizado",
+    "nota": ""
+  },
+  {
+    "id": 14,
+    "area": "Nave 1-4",
+    "cuadrilla": "Cuadrilla 1",
+    "ficha": "31448",
+    "nombre": "Carlos Fernando Lugo",
+    "tipo": "Sindicalizado",
+    "nota": ""
+  },
+  {
+    "id": 15,
+    "area": "Nave 1-4",
+    "cuadrilla": "Cuadrilla 1",
+    "ficha": "31128",
+    "nombre": "Adrian Alejandro Villarreal",
+    "tipo": "Sindicalizado",
+    "nota": ""
+  },
+  {
+    "id": 16,
+    "area": "Nave 1-4",
+    "cuadrilla": "Cuadrilla 2",
+    "ficha": "20206",
+    "nombre": "Juan Gerardo Emanuelle Salazar De La Cruz",
+    "tipo": "Sindicalizado",
+    "nota": ""
+  },
+  {
+    "id": 17,
+    "area": "Nave 1-4",
+    "cuadrilla": "Cuadrilla 2",
+    "ficha": "31462",
+    "nombre": "Cristofer Isrrael Domingues",
+    "tipo": "Sindicalizado",
+    "nota": ""
+  },
+  {
+    "id": 18,
+    "area": "Nave 1-4",
+    "cuadrilla": "Cuadrilla 2",
+    "ficha": "18354",
+    "nombre": "Nephtali Hernandez Picazo",
+    "tipo": "Sindicalizado",
+    "nota": ""
+  },
+  {
+    "id": 19,
+    "area": "Nave 1-4",
+    "cuadrilla": "Cuadrilla 3",
+    "ficha": "31028",
+    "nombre": "Jesus Eduardo Martinez",
+    "tipo": "Sindicalizado",
+    "nota": ""
+  },
+  {
+    "id": 20,
+    "area": "Nave 1-4",
+    "cuadrilla": "Cuadrilla 3",
+    "ficha": "31450",
+    "nombre": "Jesus Gerardo Mendoza",
+    "tipo": "Sindicalizado",
+    "nota": ""
+  },
+  {
+    "id": 21,
+    "area": "Nave 1-4",
+    "cuadrilla": "Cuadrilla 3",
+    "ficha": "23044",
+    "nombre": "Emanuel Jozabad Coronado",
+    "tipo": "Sindicalizado",
+    "nota": ""
+  },
+  {
+    "id": 22,
+    "area": "Nave 6-9",
+    "cuadrilla": "Cuadrilla 1",
+    "ficha": "30306",
+    "nombre": "Victor Valadez Martinez",
+    "tipo": "Sindicalizado",
+    "nota": ""
+  },
+  {
+    "id": 23,
+    "area": "Nave 6-9",
+    "cuadrilla": "Cuadrilla 1",
+    "ficha": "31120",
+    "nombre": "Erick Gonzalez",
+    "tipo": "Sindicalizado",
+    "nota": ""
+  },
+  {
+    "id": 24,
+    "area": "Nave 6-9",
+    "cuadrilla": "Cuadrilla 1",
+    "ficha": "31442",
+    "nombre": "Erik Alexis Guzman",
+    "tipo": "Sindicalizado",
+    "nota": ""
+  },
+  {
+    "id": 25,
+    "area": "Nave 6-9",
+    "cuadrilla": "Cuadrilla 1",
+    "ficha": "18116",
+    "nombre": "Carlos Pules",
+    "tipo": "Sindicalizado",
+    "nota": ""
+  },
+  {
+    "id": 26,
+    "area": "Nave 6-9",
+    "cuadrilla": "Cuadrilla 2",
+    "ficha": "31124",
+    "nombre": "Jonhatan Edmundo de la Fuente",
+    "tipo": "Sindicalizado",
+    "nota": ""
+  },
+  {
+    "id": 27,
+    "area": "Nave 6-9",
+    "cuadrilla": "Cuadrilla 2",
+    "ficha": "12400",
+    "nombre": "Hugo Francisco Flores Armendariz",
+    "tipo": "Sindicalizado",
+    "nota": ""
+  },
+  {
+    "id": 28,
+    "area": "Nave 6-9",
+    "cuadrilla": "Cuadrilla 2",
+    "ficha": "16056",
+    "nombre": "Luis Francisco Gerardo Vargas Castillo",
+    "tipo": "Sindicalizado",
+    "nota": ""
+  },
+  {
+    "id": 29,
+    "area": "Nave 6-9",
+    "cuadrilla": "Cuadrilla 3",
+    "ficha": "30314",
+    "nombre": "Jared Manuel Garcia Reyna",
+    "tipo": "Sindicalizado",
+    "nota": ""
+  },
+  {
+    "id": 30,
+    "area": "Nave 6-9",
+    "cuadrilla": "Cuadrilla 3",
+    "ficha": "31094",
+    "nombre": "Gonzalo Ezequiel Rojas",
+    "tipo": "Sindicalizado",
+    "nota": ""
+  },
+  {
+    "id": 31,
+    "area": "Nave 6-9",
+    "cuadrilla": "Cuadrilla 3",
+    "ficha": "31444",
+    "nombre": "Luis Carlos Guzman",
+    "tipo": "Sindicalizado",
+    "nota": ""
+  },
+  {
+    "id": 32,
+    "area": "Nave 10",
+    "cuadrilla": "Cuadrilla 1",
+    "ficha": "14182",
+    "nombre": "Jose Francisco Mendoza Villasana",
+    "tipo": "Sindicalizado",
+    "nota": ""
+  },
+  {
+    "id": 33,
+    "area": "Nave 10",
+    "cuadrilla": "Cuadrilla 1",
+    "ficha": "31086",
+    "nombre": "Julio Cesar Sanchez",
+    "tipo": "Sindicalizado",
+    "nota": ""
+  },
+  {
+    "id": 34,
+    "area": "Nave 10",
+    "cuadrilla": "Cuadrilla 1",
+    "ficha": "15864",
+    "nombre": "Alan Ramos Zuñiga",
+    "tipo": "Sindicalizado",
+    "nota": ""
+  },
+  {
+    "id": 35,
+    "area": "Nave 10",
+    "cuadrilla": "Cuadrilla 2",
+    "ficha": "28630",
+    "nombre": "Isaac Antonio Pena Guerrero",
+    "tipo": "Sindicalizado",
+    "nota": ""
+  },
+  {
+    "id": 36,
+    "area": "Nave 10",
+    "cuadrilla": "Cuadrilla 2",
+    "ficha": "25894",
+    "nombre": "Luis Carlos Ortiz Quiñones",
+    "tipo": "Sindicalizado",
+    "nota": ""
+  },
+  {
+    "id": 37,
+    "area": "Nave 10",
+    "cuadrilla": "Cuadrilla 2",
+    "ficha": "28342",
+    "nombre": "Oscar Daniel Garcia Torres",
+    "tipo": "Sindicalizado",
+    "nota": ""
+  },
+  {
+    "id": 38,
+    "area": "Nave 10",
+    "cuadrilla": "Cuadrilla 3",
+    "ficha": "31284",
+    "nombre": "Patricio Rodriguez Ramirez",
+    "tipo": "Sindicalizado",
+    "nota": ""
+  },
+  {
+    "id": 39,
+    "area": "Nave 10",
+    "cuadrilla": "Cuadrilla 3",
+    "ficha": "30362",
+    "nombre": "Jose Enrique",
+    "tipo": "Sindicalizado",
+    "nota": ""
+  },
+  {
+    "id": 40,
+    "area": "Nave 10",
+    "cuadrilla": "Cuadrilla 3",
+    "ficha": "22136",
+    "nombre": "Jonathan Eli Hernandez Gutierrez",
+    "tipo": "Sindicalizado",
+    "nota": ""
+  },
+  {
+    "id": 41,
+    "area": "Lining",
+    "cuadrilla": "Cuadrilla 1",
+    "ficha": "24950",
+    "nombre": "Aurelio Rodriguez Tovar",
+    "tipo": "Sindicalizado",
+    "nota": ""
+  },
+  {
+    "id": 42,
+    "area": "Lining",
+    "cuadrilla": "Cuadrilla 1",
+    "ficha": "26806",
+    "nombre": "Brandon Octavio Barrera",
+    "tipo": "Sindicalizado",
+    "nota": ""
+  },
+  {
+    "id": 43,
+    "area": "Lining",
+    "cuadrilla": "Cuadrilla 1",
+    "ficha": "30336",
+    "nombre": "Jose Daniel Maqueda Cortes",
+    "tipo": "Sindicalizado",
+    "nota": ""
+  },
+  {
+    "id": 44,
+    "area": "Lining",
+    "cuadrilla": "Cuadrilla 2",
+    "ficha": "31434",
+    "nombre": "Jaciel Emmanuel Escobedo",
+    "tipo": "Sindicalizado",
+    "nota": ""
+  },
+  {
+    "id": 45,
+    "area": "Lining",
+    "cuadrilla": "Cuadrilla 2",
+    "ficha": "13152",
+    "nombre": "Renzo Javier Ramos Chavez",
+    "tipo": "Sindicalizado",
+    "nota": ""
+  },
+  {
+    "id": 46,
+    "area": "Lining",
+    "cuadrilla": "Cuadrilla 2",
+    "ficha": "31464",
+    "nombre": "Jovany Lara",
+    "tipo": "Sindicalizado",
+    "nota": ""
+  },
+  {
+    "id": 47,
+    "area": "Lining",
+    "cuadrilla": "Cuadrilla 3",
+    "ficha": "22752",
+    "nombre": "Mauri David Reyna Flores",
+    "tipo": "Sindicalizado",
+    "nota": ""
+  },
+  {
+    "id": 48,
+    "area": "Lining",
+    "cuadrilla": "Cuadrilla 3",
+    "ficha": "30988",
+    "nombre": "Edgar Ivan Escobedo",
+    "tipo": "Sindicalizado",
+    "nota": ""
+  },
+  {
+    "id": 49,
+    "area": "Lining",
+    "cuadrilla": "Cuadrilla 3",
+    "ficha": "29350",
+    "nombre": "Ricardo Mata Reyes",
+    "tipo": "Sindicalizado",
+    "nota": ""
+  },
+  {
+    "id": 50,
+    "area": "Compresores maquinas",
+    "cuadrilla": "Cuadrilla 1",
+    "ficha": "12620",
+    "nombre": "Felipe Jesus Covarrubias Martinez",
+    "tipo": "Sindicalizado",
+    "nota": ""
+  },
+  {
+    "id": 51,
+    "area": "Compresores maquinas",
+    "cuadrilla": "Cuadrilla 1",
+    "ficha": "25676",
+    "nombre": "Hector Flores de la Cruz",
+    "tipo": "Sindicalizado",
+    "nota": ""
+  },
+  {
+    "id": 52,
+    "area": "Compresores maquinas",
+    "cuadrilla": "Cuadrilla 1",
+    "ficha": "29232",
+    "nombre": "Osvaldo de Jesus Gonzalez",
+    "tipo": "Sindicalizado",
+    "nota": ""
+  },
+  {
+    "id": 53,
+    "area": "Compresores maquinas",
+    "cuadrilla": "Cuadrilla 1",
+    "ficha": "3112",
+    "nombre": "Santiago Marquez",
+    "tipo": "Sindicalizado",
+    "nota": ""
+  },
+  {
+    "id": 54,
+    "area": "Compresores maquinas",
+    "cuadrilla": "Cuadrilla 1",
+    "ficha": "3552",
+    "nombre": "Mario Alberto Contreras Rivas",
+    "tipo": "Sindicalizado",
+    "nota": ""
+  },
+  {
+    "id": 55,
+    "area": "Compresores maquinas",
+    "cuadrilla": "Cuadrilla 1",
+    "ficha": "3578",
+    "nombre": "Jordi Fabian Salgado Arauza",
+    "tipo": "Sindicalizado",
+    "nota": ""
+  },
+  {
+    "id": 56,
+    "area": "Fabricacion / Ruedas",
+    "cuadrilla": "Cuadrilla 1",
+    "ficha": "31100",
+    "nombre": "Fernando Reyna Castillo",
+    "tipo": "Sindicalizado",
+    "nota": ""
+  },
+  {
+    "id": 57,
+    "area": "Fabricacion / Ruedas",
+    "cuadrilla": "Cuadrilla 1",
+    "ficha": "25628",
+    "nombre": "Carlos Emmanuel Ibarra",
+    "tipo": "Sindicalizado",
+    "nota": ""
+  },
+  {
+    "id": 58,
+    "area": "Fabricacion / Ruedas",
+    "cuadrilla": "Cuadrilla 1",
+    "ficha": "29892",
+    "nombre": "Angel Gonzalez",
+    "tipo": "Sindicalizado",
+    "nota": ""
+  },
+  {
+    "id": 59,
+    "area": "Fabricacion / Ruedas",
+    "cuadrilla": "Cuadrilla 2",
+    "ficha": "12218",
+    "nombre": "Adan Lopez Espinosa",
+    "tipo": "Sindicalizado",
+    "nota": ""
+  },
+  {
+    "id": 60,
+    "area": "Nave 1-4",
+    "cuadrilla": "Cuadrilla 2",
+    "ficha": "29766",
+    "nombre": "Hector Jesus Garcia Soto",
+    "tipo": "Sindicalizado",
+    "nota": ""
+  },
+  {
+    "id": 61,
+    "area": "Fabricacion / Ruedas",
+    "cuadrilla": "Cuadrilla 2",
+    "ficha": "12498",
+    "nombre": "Luis Arturo Lerma Olivares",
+    "tipo": "Sindicalizado",
+    "nota": ""
+  },
+  {
+    "id": 62,
+    "area": "Fabricacion / Ruedas",
+    "cuadrilla": "Cuadrilla 2",
+    "ficha": "28718",
+    "nombre": "Jesus Eduardo Velazquez de los Santos",
+    "tipo": "Sindicalizado",
+    "nota": ""
+  },
+  {
+    "id": 63,
+    "area": "Fabricacion / Ruedas",
+    "cuadrilla": "Cuadrilla 3",
+    "ficha": "29286",
+    "nombre": "Isidro Javier Esparza Zamora",
+    "tipo": "Sindicalizado",
+    "nota": ""
+  },
+  {
+    "id": 64,
+    "area": "Fabricacion / Ruedas",
+    "cuadrilla": "Cuadrilla 3",
+    "ficha": "25670",
+    "nombre": "Luis Gerardo Reyna Hernandez",
+    "tipo": "Sindicalizado",
+    "nota": ""
+  },
+  {
+    "id": 65,
+    "area": "Fabricacion / Ruedas",
+    "cuadrilla": "Cuadrilla 3",
+    "ficha": "25596",
+    "nombre": "Juan Antonio Ayala Medina",
+    "tipo": "Sindicalizado",
+    "nota": ""
+  },
+  {
+    "id": 66,
+    "area": "Fabricacion / Ruedas",
+    "cuadrilla": "Cuadrilla 1",
+    "ficha": "30486",
+    "nombre": "Jesus Salvador Zayas Camacho",
+    "tipo": "Sindicalizado",
+    "nota": ""
+  },
+  {
+    "id": 67,
+    "area": "Fabricacion / Ruedas",
+    "cuadrilla": "Cuadrilla 1",
+    "ficha": "28440",
+    "nombre": "Jesus Emmanuel Garcia Gomez",
+    "tipo": "Sindicalizado",
+    "nota": ""
+  },
+  {
+    "id": 68,
+    "area": "Fabricacion / Ruedas",
+    "cuadrilla": "Cuadrilla 1",
+    "ficha": "25888",
+    "nombre": "Perez Dominguez Henry Christian",
+    "tipo": "Sindicalizado",
+    "nota": ""
+  },
+  {
+    "id": 69,
+    "area": "Fabricacion / Ruedas",
+    "cuadrilla": "Cuadrilla 1",
+    "ficha": "31446",
+    "nombre": "Argenis Juan Ernesto Pesina",
+    "tipo": "Sindicalizado",
+    "nota": ""
+  },
+  {
+    "id": 70,
+    "area": "Nave 1-4",
+    "cuadrilla": "",
+    "ficha": "16774",
+    "nombre": "Roberto Carlos Barboza Mata",
+    "tipo": "Empleado",
+    "nota": ""
+  },
+  {
+    "id": 71,
+    "area": "Nave 1-4",
+    "cuadrilla": "",
+    "ficha": "21004",
+    "nombre": "Oscar Terrazas Rivas",
+    "tipo": "Empleado",
+    "nota": ""
+  },
+  {
+    "id": 72,
+    "area": "Nave 1-4",
+    "cuadrilla": "",
+    "ficha": "22188",
+    "nombre": "Gilberto Villanueva De Luna",
+    "tipo": "Empleado",
+    "nota": ""
+  },
+  {
+    "id": 73,
+    "area": "Nave 1-4",
+    "cuadrilla": "",
+    "ficha": "23736",
+    "nombre": "Gerardo Ivan Lugo Tenorio",
+    "tipo": "Empleado",
+    "nota": ""
+  },
+  {
+    "id": 74,
+    "area": "Nave 1-4",
+    "cuadrilla": "",
+    "ficha": "5856",
+    "nombre": "Alexis Eliab",
+    "tipo": "Empleado",
+    "nota": ""
+  },
+  {
+    "id": 75,
+    "area": "Lining / Pintura",
+    "cuadrilla": "",
+    "ficha": "7118",
+    "nombre": "Yonatan Asael Galvan de la Cruz",
+    "tipo": "Empleado",
+    "nota": ""
+  },
+  {
+    "id": 76,
+    "area": "Fabricacion / Ruedas",
+    "cuadrilla": "",
+    "ficha": "5030",
+    "nombre": "Ramiro Iracheta",
+    "tipo": "Empleado",
+    "nota": ""
+  },
+  {
+    "id": 77,
+    "area": "Fabricacion / Ruedas",
+    "cuadrilla": "",
+    "ficha": "23048",
+    "nombre": "Luis Armando Torres Siller",
+    "tipo": "Empleado",
+    "nota": ""
+  },
+  {
+    "id": 78,
+    "area": "Fabricacion / Ruedas",
+    "cuadrilla": "",
+    "ficha": "25870",
+    "nombre": "Rodolfo Ceballos",
+    "tipo": "Empleado",
+    "nota": ""
+  },
+  {
+    "id": 79,
+    "area": "Nave 1-4",
+    "cuadrilla": "",
+    "ficha": "5758",
+    "nombre": "Salvador Sanchez",
+    "tipo": "Empleado",
+    "nota": ""
+  },
+  {
+    "id": 80,
+    "area": "Linea B",
+    "cuadrilla": "",
+    "ficha": "19862",
+    "nombre": "Jorge Rogelio Vazquez Andrade",
+    "tipo": "Empleado",
+    "nota": ""
+  },
+  {
+    "id": 81,
+    "area": "Lining",
+    "cuadrilla": "",
+    "ficha": "16776",
+    "nombre": "Jose Juan Ontiveros Zuñiga",
+    "tipo": "Empleado",
+    "nota": ""
+  },
+  {
+    "id": 82,
+    "area": "Fabricacion / Ruedas",
+    "cuadrilla": "",
+    "ficha": "24944",
+    "nombre": "Ivan Mendez",
+    "tipo": "Empleado",
+    "nota": ""
+  },
+  {
+    "id": 83,
+    "area": "Gerencia",
+    "cuadrilla": "",
+    "ficha": "6554",
+    "nombre": "Tania Domique Ramos Silva",
+    "tipo": "Empleado",
+    "nota": ""
+  },
+  {
+    "id": 84,
+    "area": "Gerencia",
+    "cuadrilla": "",
+    "ficha": "1917",
+    "nombre": "Miguel Angel Morales Vazquez",
+    "tipo": "Empleado",
+    "nota": ""
+  },
+  {
+    "id": 85,
+    "area": "Planeación",
+    "cuadrilla": "",
+    "ficha": "1160",
+    "nombre": "Jaime Arreola Martinez",
+    "tipo": "Empleado",
+    "nota": ""
+  },
+  {
+    "id": 86,
+    "area": "Planeación",
+    "cuadrilla": "",
+    "ficha": "6852",
+    "nombre": "Yulissa Elisabeth De la Cruz Rodriguez",
+    "tipo": "Empleado",
+    "nota": ""
+  },
+  {
+    "id": 87,
+    "area": "Planeación",
+    "cuadrilla": "",
+    "ficha": "5846",
+    "nombre": "Alina Magali Martinez Morin",
+    "tipo": "Empleado",
+    "nota": ""
+  },
+  {
+    "id": 88,
+    "area": "Predictivo",
+    "cuadrilla": "",
+    "ficha": "25876",
+    "nombre": "Edgar Guadalupe Valle Escobedo",
+    "tipo": "Empleado",
+    "nota": ""
+  },
+  {
+    "id": 89,
+    "area": "Predictivo",
+    "cuadrilla": "",
+    "ficha": "6414",
+    "nombre": "Jamder Enrique Gonzalez Gonzalez",
+    "tipo": "Empleado",
+    "nota": ""
+  },
+  {
+    "id": 90,
+    "area": "Predictivo",
+    "cuadrilla": "",
+    "ficha": "28500",
+    "nombre": "Edgar Alfonso Garcia Mendez",
+    "tipo": "Empleado",
+    "nota": ""
+  },
+  {
+    "id": 91,
+    "area": "Equipo Movil",
+    "cuadrilla": "",
+    "ficha": "4178",
+    "nombre": "Alfonso Quiroz Lopez",
+    "tipo": "Empleado",
+    "nota": ""
+  }
+]
